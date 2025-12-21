@@ -1,16 +1,18 @@
 ﻿using System.Windows.Controls;
+using Jtodo.ViewModels;
 
 
 namespace Jtodo.Views
 {
-    /// <summary>
-    /// Interaction logic for Page1.xaml
-    /// </summary>
     public partial class HomeView : Page
     {
+        private readonly HomeViewModel _vm;
+
         public HomeView()
         {
             InitializeComponent();
+            _vm = new HomeViewModel();
+            DataContext = _vm;
         }
     }
 }

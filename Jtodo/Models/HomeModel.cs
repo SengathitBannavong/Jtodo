@@ -1,27 +1,55 @@
-﻿using Jtodo.Commands;
+﻿using Jtodo.Domains;
+using Jtodo.Services;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Linq;
 
 namespace Jtodo.Models
 {
-    class HomeModel
+    public class HomeModel : INotifyPropertyChanged
     {
-        private List<Context> _contexts;
-        public HomeModel() {
-            _contexts = new List<Context>();
+        private readonly TodoListService _todo_list;
+        public ObservableCollection<TodoItem> TodoList { get; set; } = new();
+        public ObservableCollection<TodoList> TodoLists { get; set; } = new();
+
+        public HomeModel()
+        {
+            _todo_list = new TodoListService();
         }
 
-        public List<Context> GetListContexts() => _contexts;
-        public void AddContext(Context context) { 
-            _contexts.Add(context);
+        public void Load_All_Todo_List()
+        {
+            var todo_list = _todo_list.Get_All_Todo_list();
+            TodoList.Clear();
+            foreach (var list in todo_list)
+            {
+                foreach (var item in list.Todo_Items)
+                {
+                    TodoList.Add(item);
+                }
+            }
+
+            // populate lists collection
+            TodoLists.Clear();
+            foreach (var list in todo_list)
+            {
+                TodoLists.Add(list);
+            }
         }
 
-        public void RemoveContext(Context context) { 
-            _contexts.Remove(context);
+        public void Load_Todo_List_ById(System.UInt64 id)
+        {
+            var list = _todo_list.Get_Todo_List(id);
+            TodoList.Clear();
+            if (list != null)
+            {
+                foreach (var item in list.Todo_Items)
+                {
+                    TodoList.Add(item);
+                }
+            }
         }
 
-        public void MockData() {
-            _contexts.Add(new Context("Buy groceries", "Milk, Bread, Eggs", DateTime.Now.AddDays(2), 1));
-            _contexts.Add(new Context("Finish project", "Complete the Jtodo project", DateTime.Now.AddDays(5), 2));
-            _contexts.Add(new Context("Workout", "Go to the gym for a workout session", DateTime.Now.AddDays(1), 3));
-        }
+        public event PropertyChangedEventHandler? PropertyChanged;
     }
 }

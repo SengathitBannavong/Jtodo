@@ -9,10 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Commands\" />
     <Folder Include="DTOs\" />
-    <Folder Include="Repositories\" />
-    <Folder Include="Services\" />
   </ItemGroup>
 
 </Project>
