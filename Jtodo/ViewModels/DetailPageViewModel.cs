@@ -1,4 +1,4 @@
-﻿using Jtodo.Domains;
+﻿using Jtodo.DTOs;
 using Jtodo.Interfaces;
 using Jtodo.Services;
 using System;
@@ -7,17 +7,21 @@ using System.Threading.Tasks;
 
 namespace Jtodo.ViewModels
 {
+    /// <summary>
+    /// ViewModel for Detail Page
+    /// ✅ ใช้ DTOs และ load TodoItems จาก DTO
+    /// </summary>
     public class DetailPageViewModel : ViewModelBase
     {
         private readonly TodoListService _todoListService;
         private readonly INavigationService _navigationService;
-        private TodoList? _currentTodoList;
-        private ObservableCollection<TodoItem> _todoItems;
+        private TodoListDto? _currentTodoList;
+        private ObservableCollection<TodoItemDto> _todoItems;
         private string _listTitle;
         private string _listDescription;
         private ulong _listId;
 
-        public ObservableCollection<TodoItem> TodoItems
+        public ObservableCollection<TodoItemDto> TodoItems
         {
             get => _todoItems;
             set
@@ -57,7 +61,7 @@ namespace Jtodo.ViewModels
             }
         }
 
-        public TodoList? CurrentTodoList
+        public TodoListDto? CurrentTodoList
         {
             get => _currentTodoList;
             private set
@@ -71,7 +75,7 @@ namespace Jtodo.ViewModels
         {
             _navigationService = navigationService;
             _todoListService = todoListService;
-            _todoItems = new ObservableCollection<TodoItem>();
+            _todoItems = new ObservableCollection<TodoItemDto>();
             _listTitle = string.Empty;
             _listDescription = string.Empty;
         }
@@ -83,18 +87,28 @@ namespace Jtodo.ViewModels
                 IsLoading = true;
                 LoadingMessage = "Loading Detail....";
 
-                var todoList = await Task.Run(() => _todoListService.Get_Todo_List(todoListId));
+                var todoListDto = await _todoListService.Get_Todo_List_Async(todoListId);
 
-                if (todoList != null)
+                if (todoListDto != null)
                 {
-                    CurrentTodoList = todoList;
-                    ListId = todoList.Id;
-                    ListTitle = todoList.Title;
-                    ListDescription = todoList.Description;
+                    CurrentTodoList = todoListDto;
+                    ListId = todoListDto.Id;
+                    ListTitle = todoListDto.Title;
+                    ListDescription = todoListDto.Description;
+
                     TodoItems.Clear();
-                    foreach (var item in todoList.Todo_Items)
+                    if (todoListDto.TodoItems != null && todoListDto.TodoItems.Count > 0)
                     {
-                        TodoItems.Add(item);
+                        foreach (var itemDto in todoListDto.TodoItems)
+                        {
+                            TodoItems.Add(itemDto);
+                        }
+                        
+                        Console.WriteLine($"[INFO] Loaded {TodoItems.Count} TodoItems for TodoList ID {todoListId}");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"[WARNING] TodoList ID {todoListId} has no TodoItems");
                     }
                 }
                 else
@@ -116,11 +130,20 @@ namespace Jtodo.ViewModels
                     "Invalid",
                     System.Windows.MessageBoxButton.OK,
                     System.Windows.MessageBoxImage.Error);
+                    
+                Console.WriteLine($"[ERROR] {ex.Message}");
+                Console.WriteLine(ex.StackTrace);
             }
             finally
             {
                 IsLoading = false;
             }
+        }
+
+        [Obsolete("Use LoadTodoListByIdAsync instead")]
+        public void LoadTodoListById(ulong todoListId)
+        {
+            _ = LoadTodoListByIdAsync(todoListId);
         }
 
         public void NavigateBack()

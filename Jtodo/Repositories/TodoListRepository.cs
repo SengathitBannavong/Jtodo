@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Jtodo.Interfaces;
 
 namespace Jtodo.Repositories
@@ -16,129 +17,129 @@ namespace Jtodo.Repositories
         {
             _db_context = db_context;
         }
-
-        public void CheckDatabaseStructure()
+     
+        // Async methods
+        public async Task<TodoList?> Get_Todo_List_Async(ulong id)
         {
             try
             {
-                Console.WriteLine("[INFO] Checking database structure...");
-                Console.WriteLine();
+                Console.WriteLine($"[INFO] Querying TodoList async with ID: {id}");
                 
-                Console.WriteLine("[INFO] Entities configured in DbContext:");
-                Console.WriteLine($"  - TodoLists: {_db_context.TodoLists.EntityType.Name}");
-                Console.WriteLine($"  - TodoItems: {_db_context.TodoItems.EntityType.Name}");
-                Console.WriteLine($"  - TodoListItems: {_db_context.TodoListItems.EntityType.Name}");
-                Console.WriteLine($"  - Types: {_db_context.Types.EntityType.Name}");
-                Console.WriteLine();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[ERROR] Error checking database: {ex.Message}");
-                Console.WriteLine();
-            }
-        }
-
-        public TodoList? Get_Todo_List(UInt64 id)
-        {
-            try
-            {
-                Console.WriteLine($"[INFO] Querying TodoList with ID: {id}");
-                
-                var todoList = _db_context.TodoLists
+                var todoList = await _db_context.TodoLists
                     .AsNoTracking()
-                    .FirstOrDefault(tl => tl.Id == id);
+                    .FirstOrDefaultAsync(tl => tl.Id == id);
                 
                 if (todoList != null)
                 {
-                    // Load related TodoItems via junction table
-                    var todoItemIds = _db_context.TodoListItems
-                        .Where(tli => tli.TodoListId == id)
-                        .Select(tli => tli.TodoItemId)
-                        .ToList();
-                    
-                    var todoItems = _db_context.TodoItems
-                        .Where(ti => todoItemIds.Contains(ti.Id))
-                        .ToList();
-                    
-                    foreach (var item in todoItems)
-                    {
-                        todoList.Add_Todo_Item(item);
-                    }
+                    await LoadTodoItemsAsync(todoList);
                 }
                 
                 return todoList;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[ERROR] Error querying TodoList: {ex.Message}");
-                Console.WriteLine(ex.StackTrace);
+                Console.WriteLine($"[ERROR] Error querying TodoList async: {ex.Message}");
                 return null;
             }
         }
 
-        public List<TodoList> Get_All_Todo_list()
+        public async Task<List<TodoList>> Get_All_Todo_list_Async()
         {
             try
             {
-                Console.WriteLine("[INFO] Querying all TodoLists from database...");
-                Console.WriteLine();
+                Console.WriteLine("[INFO] Querying all TodoLists async from database...");
                 
-                // Query TodoLists from database
-                var todoLists = _db_context.TodoLists
+                var todoLists = await _db_context.TodoLists
                     .AsNoTracking()
-                    .ToList();
+                    .ToListAsync();
                 
-                Console.WriteLine($" [INFO] Found {todoLists.Count} TodoList(s) in database");
+                Console.WriteLine($"[INFO] Found {todoLists.Count} TodoList(s) in database");
                 
-                // Load related TodoItems for each TodoList
                 foreach (var todoList in todoLists)
                 {
-                    var todoItemIds = _db_context.TodoListItems
-                        .Where(tli => tli.TodoListId == todoList.Id)
-                        .Select(tli => tli.TodoItemId)
-                        .ToList();
-                    
-                    var todoItems = _db_context.TodoItems
-                        .Where(ti => todoItemIds.Contains(ti.Id))
-                        .ToList();
-                    
-                    foreach (var item in todoItems)
-                    {
-                        todoList.Add_Todo_Item(item);
-                    }
-                    
-                    Console.WriteLine($"  [INFO] Loaded TodoList ID {todoList.Id}: {todoList.Title} ({todoList.Todo_Items.Count} items)");
+                    await LoadTodoItemsAsync(todoList);
                 }
                 
-                Console.WriteLine();
                 return todoLists;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[ERROR] Error querying TodoLists: {ex.Message}");
-                Console.WriteLine(ex.StackTrace);
+                Console.WriteLine($"[ERROR] Error querying TodoLists async: {ex.Message}");
                 return new List<TodoList>();
             }
         }
 
-        public void Add_Todo_List(TodoList todoList)
+        public async Task<ulong> Add_Todo_List_Async(TodoList todoList)
         {
-            throw new NotImplementedException();
+            try
+            {
+                Console.WriteLine($"[INFO] Adding TodoList async: {todoList.Title}");
+                
+                await _db_context.TodoLists.AddAsync(todoList);
+                
+                return todoList.Id;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ERROR] Error adding TodoList async: {ex.Message}");
+                throw;
+            }
         }
 
-        public void Update_Todo_List(TodoList todoList)
+        public async Task Update_Todo_List_Async(TodoList todoList)
         {
-            throw new NotImplementedException();
+            try
+            {
+                Console.WriteLine($"[INFO] Updating TodoList async: {todoList.Title}");
+                _db_context.TodoLists.Update(todoList);
+                await Task.CompletedTask;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ERROR] Error updating TodoList async: {ex.Message}");
+                throw;
+            }
         }
 
-        public void Delete_Todo_List(ulong id)
+        public async Task Delete_Todo_List_Async(ulong id)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var list = await _db_context.TodoLists.FindAsync(id);
+                if (list != null)
+                {
+                    _db_context.TodoLists.Remove(list);
+                    Console.WriteLine($"[INFO] Deleted TodoList async ID: {id}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ERROR] Error deleting TodoList async: {ex.Message}");
+                throw;
+            }
         }
 
-        public bool Exists(ulong id)
+        public async Task<bool> Exists_Async(ulong id)
         {
-            throw new NotImplementedException();
+            return await _db_context.TodoLists.AnyAsync(tl => tl.Id == id);
+        }
+
+        // Helper methods
+        private async Task LoadTodoItemsAsync(TodoList todoList)
+        {
+            var todoItemIds = await _db_context.TodoListItems
+                .Where(tli => tli.TodoListId == todoList.Id)
+                .Select(tli => tli.TodoItemId)
+                .ToListAsync();
+            
+            var todoItems = await _db_context.TodoItems
+                .Where(ti => todoItemIds.Contains(ti.Id))
+                .ToListAsync();
+            
+            foreach (var item in todoItems)
+            {
+                todoList.Add_Todo_Item(item);
+            }
         }
     }
 }

@@ -1,6 +1,9 @@
 ﻿using Jtodo.Domains;
+using Jtodo.DTOs;
+using Jtodo.Mappers;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Jtodo.Interfaces;
 
 namespace Jtodo.Services
@@ -14,26 +17,38 @@ namespace Jtodo.Services
             _unitOfWork = unitOfWork;
         }
 
-        public List<TodoList> Get_All_Todo_list()
+        public async Task<List<TodoListDto>> Get_All_Todo_list_Async()
         {
-           return _unitOfWork.TodoListRepository.Get_All_Todo_list();
+            var domains = await _unitOfWork.TodoListRepository.Get_All_Todo_list_Async();
+            return domains.ToDtoList();
         }
 
-        public TodoList? Get_Todo_List(System.UInt64 id)
+        public async Task<TodoListDto?> Get_Todo_List_Async(ulong id)
         {
-            return _unitOfWork.TodoListRepository.Get_Todo_List(id);
+            var domain = await _unitOfWork.TodoListRepository.Get_Todo_List_Async(id);
+            return domain?.ToDto();
         }
 
-        // Return all list ids (and titles) for selection in UI
-        public List<System.UInt64> Get_All_ListIds()
+        public async Task<ulong> Create_Todo_List_Async(TodoListDto dto)
         {
-            return _unitOfWork.TodoListRepository.Get_All_Todo_list().Select(t => t.Id).ToList();
+            var domain = dto.ToDomain();
+            await _unitOfWork.TodoListRepository.Add_Todo_List_Async(domain);
+            await _unitOfWork.SaveChangesAsync();
+            return domain.Id;
         }
 
-        // Optionally return list summaries (id + title)
-        public List<(System.UInt64 Id, string Title)> Get_All_ListSummaries()
+        public async Task Update_Todo_List_Async(TodoListDto dto)
         {
-            return _unitOfWork.TodoListRepository.Get_All_Todo_list().Select(t => (t.Id, t.Title)).ToList();
+            var domain = dto.ToDomain();
+            await _unitOfWork.TodoListRepository.Update_Todo_List_Async(domain);
+            await _unitOfWork.SaveChangesAsync();
+        }
+
+        public async Task Delete_Todo_List_Async(ulong id)
+        {
+            await _unitOfWork.TodoListRepository.Delete_Todo_List_Async(id);
+            await _unitOfWork.SaveChangesAsync();
         }
     }
 }
+

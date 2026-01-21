@@ -62,49 +62,6 @@ namespace Jtodo
             Console.WriteLine($"Startup Time: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
             Console.WriteLine();
 #endif
-
-            try
-            {
-                Console.WriteLine("[INFO] Initializing Unit of Work...");
-                var uow = UnitOfWork;
-                Console.WriteLine("[YES] Unit of Work initialized successfully");
-                Console.WriteLine();
-
-                Console.WriteLine("[INFO] Reading TodoLists from database...");
-                var todoLists = uow.TodoListRepository.Get_All_Todo_list();
-                
-                Console.WriteLine($"[YES] Successfully loaded {todoLists.Count} TodoList(s) from database");
-                Console.WriteLine();
-
-                if (todoLists.Count > 0)
-                {
-                    Console.WriteLine("[INFO] TodoList Details:");
-                    foreach (var list in todoLists)
-                    {
-                        Console.WriteLine($"  - ID: {list.Id}");
-                        Console.WriteLine($"    Title: {list.Title}");
-                        Console.WriteLine($"    Description: {list.Description}");
-                        Console.WriteLine($"    Items Count: {list.Todo_Items.Count}");
-                        Console.WriteLine();
-                    }
-                }
-                else
-                {
-                    Console.WriteLine("[INFO]  No TodoLists found in database");
-                    Console.WriteLine("   Database might be empty or not initialized yet");
-                    Console.WriteLine();
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("[ERROR] Error reading database:");
-                Console.WriteLine($"   {ex.GetType().Name}: {ex.Message}");
-                Console.WriteLine();
-                Console.WriteLine("Stack Trace:");
-                Console.WriteLine(ex.StackTrace);
-                Console.WriteLine();
-            }
-
             Console.WriteLine("=== Application Startup Complete ===");
             Console.WriteLine();
         }

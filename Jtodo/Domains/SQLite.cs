@@ -69,7 +69,10 @@ namespace Jtodo.Domains
             {
                 entity.ToTable("todo_list");
                 entity.HasKey(e => e.Id);
-                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Id)
+                    .HasColumnName("id")
+                    .ValueGeneratedOnAdd();
+                    
                 entity.Property(e => e.Title).HasColumnName("title").IsRequired();
                 entity.Property(e => e.Description).HasColumnName("description");
                 entity.Property(e => e.CreateDate)

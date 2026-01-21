@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using Jtodo.Domains;
 using Jtodo.ViewModels;
+using Jtodo.DTOs;
 
 namespace Jtodo.Selectors
 {
@@ -16,7 +17,7 @@ namespace Jtodo.Selectors
             {
                 return NewTodoListTemplate;
             }
-            else if (item is TodoList)
+            else if (item is TodoListDto)
             {
                 return TodoListTemplate;
             }
