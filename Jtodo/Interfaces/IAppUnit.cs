@@ -4,7 +4,7 @@ namespace Jtodo.Interfaces
 {
     public interface IAppUnit : IDisposable
     {
-        TodoListRespository TodoListRepository { get; }
+        TodoListRepository TodoListRepository { get; }
         
         int SaveChanges();
         Task<int> SaveChangesAsync();

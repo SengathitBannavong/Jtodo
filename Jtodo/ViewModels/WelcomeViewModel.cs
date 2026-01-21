@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using Jtodo.Commands;
 using Jtodo.Domains;
@@ -9,7 +10,7 @@ using Jtodo.Services;
 
 namespace Jtodo.ViewModels
 {
-    public class WelcomeViewModel : INotifyPropertyChanged
+    public class WelcomeViewModel : ViewModelBase
     {
         private readonly TodoListService _todoListService;
         private readonly INavigationService _navigationService;
@@ -23,7 +24,7 @@ namespace Jtodo.ViewModels
             set
             {
                 _displayItems = value;
-                RaisePropertyChanged();
+                OnPropertyChanged();
             }
         }
 
@@ -39,19 +40,40 @@ namespace Jtodo.ViewModels
             
             NavigateToDetailCommand = new RelayCommand(OnNavigateToDetail);
             CreateNewTodoListCommand = new RelayCommand(OnCreateNewTodoList);
-
-            LoadTodoLists();
         }
 
-        private void LoadTodoLists()
+        public override async Task InitializeAsync()
         {
-            var lists = _todoListService.Get_All_Todo_list();
-            TodoLists.Clear();
-            foreach (var list in lists)
+            await LoadTodoListsAsync();
+        }
+
+        private async Task LoadTodoListsAsync()
+        {
+            try
             {
-                TodoLists.Add(list);
+                IsLoading = true;
+                LoadingMessage = "Loading List Todo...";
+                var lists = await Task.Run(() => _todoListService.Get_All_Todo_list());
+                TodoLists.Clear();
+                foreach (var list in lists)
+                {
+                    TodoLists.Add(list);
+                }
+
+                RefreshDisplayItems();
             }
-            RefreshDisplayItems();
+            catch (System.Exception ex)
+            {
+                System.Windows.MessageBox.Show(
+                    $"Error: {ex.Message}",
+                    "Invalid",
+                    System.Windows.MessageBoxButton.OK,
+                    System.Windows.MessageBoxImage.Error);
+            }
+            finally
+            {
+                IsLoading = false;
+            }
         }
 
         private void RefreshDisplayItems()
@@ -79,9 +101,5 @@ namespace Jtodo.ViewModels
             System.Windows.MessageBox.Show("Create New Todo List - Feature coming soon!", "Info", 
             System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
         }
-
-        public event PropertyChangedEventHandler? PropertyChanged;
-        protected void RaisePropertyChanged([CallerMemberName] string? propertyName = null)
-            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }

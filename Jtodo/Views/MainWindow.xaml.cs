@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using Jtodo.Services;
 
 namespace Jtodo.Views
 {
@@ -7,7 +8,23 @@ namespace Jtodo.Views
         public MainWindow()
         {
             InitializeComponent();
+            InitializeNavigationService();
             MainFrame.Navigate(new WelcomePage());
+        }
+
+        private void InitializeNavigationService()
+        {
+            if (App.NavigationService is AppNavigationService navService)
+            {
+                // Wait for MainFrame to be loaded
+                MainFrame.Loaded += (s, e) =>
+                {
+                    if (MainFrame.NavigationService != null)
+                    {
+                        navService.SetNavigationService(MainFrame.NavigationService);
+                    }
+                };
+            }
         }
     }
 }

@@ -1,14 +1,13 @@
-using Jtodo.Domains;
+﻿using Jtodo.Domains;
 using Jtodo.Interfaces;
 using Jtodo.Services;
 using System;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 
 namespace Jtodo.ViewModels
 {
-    public class DetailPageViewModel : INotifyPropertyChanged
+    public class DetailPageViewModel : ViewModelBase
     {
         private readonly TodoListService _todoListService;
         private readonly INavigationService _navigationService;
@@ -24,7 +23,7 @@ namespace Jtodo.ViewModels
             set
             {
                 _todoItems = value;
-                RaisePropertyChanged();
+                OnPropertyChanged();
             }
         }
 
@@ -34,7 +33,7 @@ namespace Jtodo.ViewModels
             set
             {
                 _listTitle = value;
-                RaisePropertyChanged();
+                OnPropertyChanged();
             }
         }
 
@@ -44,7 +43,7 @@ namespace Jtodo.ViewModels
             set
             {
                 _listDescription = value;
-                RaisePropertyChanged();
+                OnPropertyChanged();
             }
         }
 
@@ -54,7 +53,7 @@ namespace Jtodo.ViewModels
             set
             {
                 _listId = value;
-                RaisePropertyChanged();
+                OnPropertyChanged();
             }
         }
 
@@ -64,7 +63,7 @@ namespace Jtodo.ViewModels
             private set
             {
                 _currentTodoList = value;
-                RaisePropertyChanged();
+                OnPropertyChanged();
             }
         }
 
@@ -77,39 +76,56 @@ namespace Jtodo.ViewModels
             _listDescription = string.Empty;
         }
 
-        public void LoadTodoListById(ulong todoListId)
+        public async Task LoadTodoListByIdAsync(ulong todoListId)
         {
-            CurrentTodoList = _todoListService.Get_Todo_List(todoListId);
-
-            if (CurrentTodoList != null)
+            try
             {
-                ListId = CurrentTodoList.Id;
-                ListTitle = CurrentTodoList.Title;
-                ListDescription = CurrentTodoList.Description;
+                IsLoading = true;
+                LoadingMessage = "Loading Detail....";
 
-                // Load todo items
-                TodoItems.Clear();
-                foreach (var item in CurrentTodoList.Todo_Items)
+                var todoList = await Task.Run(() => _todoListService.Get_Todo_List(todoListId));
+
+                if (todoList != null)
                 {
-                    TodoItems.Add(item);
+                    CurrentTodoList = todoList;
+                    ListId = todoList.Id;
+                    ListTitle = todoList.Title;
+                    ListDescription = todoList.Description;
+                    TodoItems.Clear();
+                    foreach (var item in todoList.Todo_Items)
+                    {
+                        TodoItems.Add(item);
+                    }
+                }
+                else
+                {
+                    ListTitle = "Not Found Todo";
+                    ListDescription = string.Empty;
+                    
+                    System.Windows.MessageBox.Show(
+                        $"Not Found Todo with ID: {todoListId}",
+                        "Invalid",
+                        System.Windows.MessageBoxButton.OK,
+                        System.Windows.MessageBoxImage.Warning);
                 }
             }
-            else
+            catch (Exception ex)
             {
-                ListTitle = "Todo List Not Found";
-                ListDescription = string.Empty;
-                TodoItems.Clear();
+                System.Windows.MessageBox.Show(
+                    $"Error Fetch Data: {ex.Message}",
+                    "Invalid",
+                    System.Windows.MessageBoxButton.OK,
+                    System.Windows.MessageBoxImage.Error);
+            }
+            finally
+            {
+                IsLoading = false;
             }
         }
 
-        public event PropertyChangedEventHandler? PropertyChanged;
-
-        protected void RaisePropertyChanged([CallerMemberName] string? propertyName = null)
-            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-
-        internal void NavigateBack()
+        public void NavigateBack()
         {
-           _navigationService.GoBack();
+            _navigationService.GoBack();
         }
     }
 }

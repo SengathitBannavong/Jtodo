@@ -9,7 +9,7 @@ namespace Jtodo.Repositories
     public class SQLiteUnitOfWork : IAppUnit
     {
         private readonly SQLite _context;
-        private TodoListRespository? _todoListRepository;
+        private TodoListRepository? _todoListRepository;
         private bool _disposed = false;
 
         public SQLiteUnitOfWork()
@@ -22,11 +22,11 @@ namespace Jtodo.Repositories
             _context = context;
         }
 
-        public TodoListRespository TodoListRepository
+        public TodoListRepository TodoListRepository
         {
             get
             {
-                _todoListRepository ??= new TodoListRespository(_context);
+                _todoListRepository ??= new TodoListRepository(_context);
                 return _todoListRepository;
             }
         }

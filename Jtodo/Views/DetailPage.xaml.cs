@@ -1,38 +1,30 @@
-using System;
+﻿using System;
 using System.Windows;
 using System.Windows.Controls;
 using Jtodo.ViewModels;
-using Jtodo.Services;
-using Jtodo.Interfaces;
 
 namespace Jtodo.Views
 {
     public partial class DetailPage : Page
     {
         private readonly DetailPageViewModel _viewModel;
-        private readonly INavigationService _navigationService;
 
         public DetailPage(string listId)
         {
             InitializeComponent();
-            _navigationService = App.NavigationService;
-            _viewModel = new DetailPageViewModel(_navigationService, App.TodoListService);
+            _viewModel = new DetailPageViewModel(App.NavigationService, App.TodoListService);
             DataContext = _viewModel;
 
-            if (ulong.TryParse(listId, out ulong id))
+            Loaded += async (s, e) =>
             {
-                _viewModel.LoadTodoListById(id);
-            }
-            else
-            {
-                MessageBox.Show($"Invalid Todo List ID: {listId}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-
-            Loaded += (s, e) =>
-            {
-                if (_navigationService is AppNavigationService navService && NavigationService != null)
+                if (ulong.TryParse(listId, out ulong id))
                 {
-                    navService.SetNavigationService(NavigationService);
+                    await _viewModel.LoadTodoListByIdAsync(id);
+                }
+                else
+                {
+                    MessageBox.Show($"Invalid Todo List ID: {listId}", "Error", 
+                        MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             };
         }
@@ -44,7 +36,7 @@ namespace Jtodo.Views
 
         private void MenuButton_Click(object sender, RoutedEventArgs e)
         {
-
+            // TODO: Implement menu functionality
         }
     }
 }

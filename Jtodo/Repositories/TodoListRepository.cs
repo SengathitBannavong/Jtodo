@@ -8,11 +8,11 @@ using Jtodo.Interfaces;
 
 namespace Jtodo.Repositories
 {
-    public class TodoListRespository : ITodoListRepository
+    public class TodoListRepository : ITodoListRepository
     {
         private readonly SQLite _db_context;
 
-        public TodoListRespository(SQLite db_context)
+        public TodoListRepository(SQLite db_context)
         {
             _db_context = db_context;
         }
