@@ -15,8 +15,8 @@ namespace Jtodo.Views
         public DetailPage(string listId)
         {
             InitializeComponent();
-            _navigationService = new AppNavigationService();
-            _viewModel = new DetailPageViewModel(_navigationService);
+            _navigationService = App.NavigationService;
+            _viewModel = new DetailPageViewModel(_navigationService, App.TodoListService);
             DataContext = _viewModel;
 
             if (ulong.TryParse(listId, out ulong id))

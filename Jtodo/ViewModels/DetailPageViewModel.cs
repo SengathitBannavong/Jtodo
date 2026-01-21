@@ -68,10 +68,10 @@ namespace Jtodo.ViewModels
             }
         }
 
-        public DetailPageViewModel(INavigationService navigationService)
+        public DetailPageViewModel(INavigationService navigationService, TodoListService todoListService)
         {
             _navigationService = navigationService;
-            _todoListService = new TodoListService();
+            _todoListService = todoListService;
             _todoItems = new ObservableCollection<TodoItem>();
             _listTitle = string.Empty;
             _listDescription = string.Empty;

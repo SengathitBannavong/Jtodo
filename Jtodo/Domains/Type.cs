@@ -1,21 +1,25 @@
-﻿using System.Drawing;
-
-namespace Jtodo.Domains
+﻿namespace Jtodo.Domains
 {
-    // Type is feel like category or tag
-    class Type
+    public class Type
     {
-        private readonly UInt64 _id;
-        private readonly string _name;
-        private readonly Color _color;
+        private UInt64 _id;
+        private string _text;
+        private int _color;
 
-        public UInt64 Id => _id;
-        public string Name => _name;
-        public Color Color => _color;
-        public Type(UInt64 Id,string Name,Color Color)
+        public UInt64 Id { get => _id; private set => _id = value; }
+        public string Text { get => _text; private set => _text = value; }
+        public int Color { get => _color; private set => _color = value; }
+
+        // Constructor for EF Core (private)
+        private Type()
         {
-            _name = Name;
+            _text = string.Empty;
+        }
+        
+        public Type(UInt64 Id, string Text, int Color)
+        {
             _id = Id;
+            _text = Text;
             _color = Color;
         }
     }

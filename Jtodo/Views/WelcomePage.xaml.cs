@@ -13,8 +13,8 @@ namespace Jtodo.Views
         public WelcomePage()
         {
             InitializeComponent();
-            _navigationService = new AppNavigationService();
-            _viewModel = new WelcomeViewModel(_navigationService);
+            _navigationService = App.NavigationService;
+            _viewModel = new WelcomeViewModel(_navigationService, App.TodoListService);
             DataContext = _viewModel;
 
             Loaded += (s, e) =>

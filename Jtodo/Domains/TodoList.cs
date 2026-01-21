@@ -3,22 +3,33 @@ namespace Jtodo.Domains
 {
     public class TodoList
     {
-        private readonly List<TodoItem> _todo_items;
-        private readonly UInt64 _id;
-        private readonly string _title;
-        private readonly string _description;
+        private List<TodoItem> _todo_items;
+        private UInt64 _id;
+        private string _title;
+        private string _description;
+        private DateTime _createDate;
 
         public List<TodoItem> Todo_Items => _todo_items;
-        public UInt64 Id => _id;
-        public string Title => _title;
-        public string Description => _description;
+        public UInt64 Id { get => _id; private set => _id = value; }
+        public string Title { get => _title; private set => _title = value; }
+        public string Description { get => _description; private set => _description = value; }
+        public DateTime CreateDate { get => _createDate; private set => _createDate = value; }
 
-        public TodoList(UInt64 Id, string Title,string Description)
+        // Constructor for EF Core (private)
+        private TodoList()
+        {
+            _todo_items = new List<TodoItem>();
+            _title = string.Empty;
+            _description = string.Empty;
+        }
+
+        public TodoList(UInt64 Id, string Title, string Description, DateTime CreateDate)
         {
             _todo_items = new List<TodoItem>();
             _id = Id;
             _title = Title;
             _description = Description;
+            _createDate = CreateDate;
         }
 
         public void Add_Todo_Item(TodoItem item)

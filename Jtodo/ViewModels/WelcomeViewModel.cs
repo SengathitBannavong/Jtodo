@@ -30,9 +30,9 @@ namespace Jtodo.ViewModels
         public ICommand NavigateToDetailCommand { get; }
         public ICommand CreateNewTodoListCommand { get; }
 
-        public WelcomeViewModel(INavigationService navigationService)
+        public WelcomeViewModel(INavigationService navigationService, TodoListService todoListService)
         {
-            _todoListService = new TodoListService();
+            _todoListService = todoListService;
             _navigationService = navigationService;
             TodoLists = new ObservableCollection<TodoList>();
             _displayItems = new ObservableCollection<object>();
@@ -41,11 +41,6 @@ namespace Jtodo.ViewModels
             CreateNewTodoListCommand = new RelayCommand(OnCreateNewTodoList);
 
             LoadTodoLists();
-        }
-
-        // Constructor สำหรับ backward compatibility
-        public WelcomeViewModel() : this(new AppNavigationService())
-        {
         }
 
         private void LoadTodoLists()
