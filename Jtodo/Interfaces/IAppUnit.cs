@@ -1,4 +1,6 @@
-namespace Jtodo.Repositories
+using Jtodo.Repositories;
+
+namespace Jtodo.Interfaces
 {
     public interface IAppUnit : IDisposable
     {

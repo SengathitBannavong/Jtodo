@@ -1,6 +1,6 @@
 using Jtodo.Domains;
+using Jtodo.Interfaces;
 using Jtodo.Services;
-using Jtodo.Services.Interfaces;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;

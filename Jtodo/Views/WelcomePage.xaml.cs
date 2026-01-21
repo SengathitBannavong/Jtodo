@@ -1,7 +1,7 @@
 using System.Windows.Controls;
 using Jtodo.ViewModels;
 using Jtodo.Services;
-using Jtodo.Services.Interfaces;
+using Jtodo.Interfaces;
 
 namespace Jtodo.Views
 {

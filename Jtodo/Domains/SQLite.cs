@@ -1,8 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Jtodo.Domains;
 using System.IO;
 
-namespace Jtodo.Repositories
+namespace Jtodo.Domains
 {
     public class SQLite : DbContext
     {
@@ -37,7 +36,7 @@ namespace Jtodo.Repositories
 
         public DbSet<TodoList> TodoLists { get; set; }
         public DbSet<TodoItem> TodoItems { get; set; }
-        public DbSet<Domains.Type> Types { get; set; }
+        public DbSet<Type> Types { get; set; }
         public DbSet<TodoListItem> TodoListItems { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -56,7 +55,7 @@ namespace Jtodo.Repositories
             base.OnModelCreating(modelBuilder);
 
             // Configure Type entity
-            modelBuilder.Entity<Domains.Type>(entity =>
+            modelBuilder.Entity<Type>(entity =>
             {
                 entity.ToTable("type");
                 entity.HasKey(e => e.Id);
@@ -127,7 +126,7 @@ namespace Jtodo.Repositories
                 entity.Property(e => e.TypeId).HasColumnName("type_id").IsRequired();
 
                 // Foreign Key to Type
-                entity.HasOne<Domains.Type>()
+                entity.HasOne<Type>()
                     .WithMany()
                     .HasForeignKey(e => e.TypeId)
                     .OnDelete(DeleteBehavior.Restrict);

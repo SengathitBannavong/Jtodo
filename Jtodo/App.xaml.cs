@@ -1,6 +1,6 @@
-﻿using Jtodo.Repositories;
+﻿using Jtodo.Interfaces;
+using Jtodo.Repositories;
 using Jtodo.Services;
-using Jtodo.Services.Interfaces;
 using System.Configuration;
 using System.Data;
 using System.Runtime.InteropServices;

@@ -1,6 +1,6 @@
 using System.Windows.Navigation;
 
-namespace Jtodo.Services.Interfaces
+namespace Jtodo.Interfaces
 {
     public interface INavigationService
     {

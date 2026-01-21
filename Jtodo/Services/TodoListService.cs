@@ -1,7 +1,7 @@
-﻿using Jtodo.Repositories;
-using Jtodo.Domains;
+﻿using Jtodo.Domains;
 using System.Collections.Generic;
 using System.Linq;
+using Jtodo.Interfaces;
 
 namespace Jtodo.Services
 {

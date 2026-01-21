@@ -1,5 +1,5 @@
 using System.Windows.Navigation;
-using Jtodo.Services.Interfaces;
+using Jtodo.Interfaces;
 using Jtodo.Views;
 
 namespace Jtodo.Services

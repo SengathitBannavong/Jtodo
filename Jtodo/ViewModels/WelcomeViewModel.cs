@@ -4,8 +4,8 @@ using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using Jtodo.Commands;
 using Jtodo.Domains;
+using Jtodo.Interfaces;
 using Jtodo.Services;
-using Jtodo.Services.Interfaces;
 
 namespace Jtodo.ViewModels
 {

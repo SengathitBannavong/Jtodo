@@ -4,10 +4,11 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Jtodo.Interfaces;
 
 namespace Jtodo.Repositories
 {
-    public class TodoListRespository
+    public class TodoListRespository : ITodoListRepository
     {
         private readonly SQLite _db_context;
 
@@ -118,6 +119,26 @@ namespace Jtodo.Repositories
                 Console.WriteLine(ex.StackTrace);
                 return new List<TodoList>();
             }
+        }
+
+        public void Add_Todo_List(TodoList todoList)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Update_Todo_List(TodoList todoList)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Delete_Todo_List(ulong id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool Exists(ulong id)
+        {
+            throw new NotImplementedException();
         }
     }
 }
