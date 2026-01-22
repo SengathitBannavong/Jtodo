@@ -12,8 +12,8 @@ namespace Jtodo.Views
         {
             InitializeComponent();
             
-            // Initialize ViewModel
-            _viewModel = new MainWindowViewModel(App.TodoListService, App.NavigationService);
+            // Initialize ViewModel with TodoItemService
+            _viewModel = new MainWindowViewModel(App.TodoListService, App.TodoItemService, App.NavigationService);
             DataContext = _viewModel;
             
             InitializeNavigationService();

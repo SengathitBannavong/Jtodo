@@ -14,9 +14,18 @@ namespace Jtodo.Services
     {
         private readonly IAppUnit _unitOfWork;
 
+        // Event for notifying when data changes
+        public event EventHandler? DataChanged;
+
         public TodoListService(IAppUnit unitOfWork)
         {
             _unitOfWork = unitOfWork;
+        }
+
+        // Method to trigger the event
+        protected virtual void OnDataChanged()
+        {
+            DataChanged?.Invoke(this, EventArgs.Empty);
         }
 
         public async Task<List<TodoListDto>> Get_All_Todo_list_Async()
@@ -50,21 +59,42 @@ namespace Jtodo.Services
         {
             await _unitOfWork.TodoListRepository.Delete_Todo_List_Async(id);
             await _unitOfWork.SaveChangesAsync();
+            
+            OnDataChanged(); // Notify subscribers
         }
 
         public async Task Delete_TodoList_Complete_Async(ulong id)
         {
             await _unitOfWork.TodoListRepository.Delete_Todo_List_With_Items_Async(id);
             await _unitOfWork.SaveChangesAsync();
+            
+            OnDataChanged(); // Notify subscribers
         }
 
         public async Task<TodoItemDto> CreateTaskInListAsync(ulong todoListId)
         {
             try
             {
-                // Get the first available type (or default to 1 if no types exist)
+                // Get "None" type ID as default
                 var types = await _unitOfWork.TypeRepository.GetAllTypesAsync();
-                ulong defaultTypeId = types.FirstOrDefault()?.Id ?? 1;
+                var noneType = types.FirstOrDefault(t => t.Text == "None");
+                ulong defaultTypeId;
+
+                if (noneType == null)
+                {
+                    // Ensure "None" type exists
+                    var dbContext = _unitOfWork.GetDbContext();
+                    await dbContext.EnsureDefaultTypeExistsAsync();
+                    
+                    // Retrieve again
+                    types = await _unitOfWork.TypeRepository.GetAllTypesAsync();
+                    noneType = types.FirstOrDefault(t => t.Text == "None");
+                    defaultTypeId = noneType?.Id ?? types.FirstOrDefault()?.Id ?? 1;
+                }
+                else
+                {
+                    defaultTypeId = noneType.Id;
+                }
 
                 // Create new TodoItem with default values
                 var newTodoItem = new TodoItem(
@@ -87,6 +117,8 @@ namespace Jtodo.Services
                 await _unitOfWork.SaveChangesAsync();
 
                 Console.WriteLine($"[INFO] Successfully created new task ID: {newTodoItem.Id} in TodoList ID: {todoListId}");
+
+                OnDataChanged(); // Notify subscribers
 
                 // Convert to DTO and return
                 return newTodoItem.ToDto();
@@ -130,6 +162,7 @@ namespace Jtodo.Services
             try
             {
                 var today = DateTime.Now.Date;
+                var tomorrow = today.AddDays(1);
                 var endDate = today.AddDays(daysAhead);
 
                 // Get all TodoLists with their items
@@ -139,7 +172,7 @@ namespace Jtodo.Services
                 var upcomingTasks = allTodoLists
                     .SelectMany(list => list.Todo_Items
                         .Where(item => item.DueDate.HasValue &&
-                                       item.DueDate.Value.Date >= today &&
+                                       item.DueDate.Value.Date >= tomorrow && // Changed from today to tomorrow (1-3 days)
                                        item.DueDate.Value.Date <= endDate &&
                                        item.Status != Status.Completed &&
                                        item.Status != Status.Cancelled)
@@ -158,7 +191,7 @@ namespace Jtodo.Services
                                 UrgencyColor = GetUrgencyColor(daysRemaining)
                             };
                         }))
-                    .OrderBy(task => task.DueDate)
+                    .OrderBy(task => task.DueDate) // Order by date (nearest first)
                     .ToList();
 
                 return upcomingTasks;

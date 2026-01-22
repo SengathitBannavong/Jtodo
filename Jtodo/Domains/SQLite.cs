@@ -208,5 +208,38 @@ namespace Jtodo.Domains
 
             return result.ToString();
         }
+
+        public async System.Threading.Tasks.Task EnsureDefaultTypeExistsAsync()
+        {
+            try
+            {
+                // Check if "None" type already exists
+                var noneType = await Types.FirstOrDefaultAsync(t => t.Text == "None");
+                
+                if (noneType == null)
+                {
+                    // Create default "None" type with gray color
+                    var defaultType = new Type(
+                        Id: 0, // Will be auto-generated
+                        Text: "None",
+                        Color: 0x808080 // Gray color
+                    );
+
+                    await Types.AddAsync(defaultType);
+                    await SaveChangesAsync();
+                    
+                    Console.WriteLine("[INFO] Created default 'None' type with ID: " + defaultType.Id);
+                }
+                else
+                {
+                    Console.WriteLine("[INFO] Default 'None' type already exists with ID: " + noneType.Id);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ERROR] Failed to ensure default type: {ex.Message}");
+            }
+        }
     }
 }
+

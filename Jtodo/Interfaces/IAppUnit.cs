@@ -1,3 +1,4 @@
+using Jtodo.Domains;
 using Jtodo.Repositories;
 
 namespace Jtodo.Interfaces
@@ -10,5 +11,7 @@ namespace Jtodo.Interfaces
         
         int SaveChanges();
         Task<int> SaveChangesAsync();
+        SQLite GetDbContext();
     }
 }
+

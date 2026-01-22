@@ -48,6 +48,9 @@ namespace Jtodo.DTOs
             set { _editingColorHex = value; OnPropertyChanged(nameof(EditingColorHex)); }
         }
 
+        // Property to check if this is the default "None" type
+        public bool IsNoneType => Text == "None";
+
         public TypeItemViewModel()
         {
             _text = string.Empty;

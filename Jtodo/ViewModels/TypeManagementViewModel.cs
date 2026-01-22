@@ -26,6 +26,7 @@ namespace Jtodo.ViewModels
         public ICommand CancelEditTypeCommand { get; }
         public ICommand DeleteTypeCommand { get; }
         public ICommand AddNewTypeCommand { get; }
+        public ICommand SelectColorCommand { get; }
 
         public TypeManagementViewModel(TypeService typeService)
         {
@@ -37,6 +38,7 @@ namespace Jtodo.ViewModels
             CancelEditTypeCommand = new RelayCommand(p => CancelEditType(p as TypeItemViewModel));
             DeleteTypeCommand = new RelayCommand(async p => await DeleteTypeAsync(p as TypeItemViewModel));
             AddNewTypeCommand = new RelayCommand(async p => await AddNewTypeAsync());
+            SelectColorCommand = new RelayCommand(p => SelectColor(p as TypeItemViewModel));
         }
 
         public async Task LoadTypesAsync()
@@ -131,6 +133,17 @@ namespace Jtodo.ViewModels
         {
             if (item == null) return;
 
+            // Protect "None" type from deletion
+            if (item.Text == "None")
+            {
+                System.Windows.MessageBox.Show(
+                    "Cannot delete the default 'None' type.\nThis type is required by the system.",
+                    "Cannot Delete",
+                    System.Windows.MessageBoxButton.OK,
+                    System.Windows.MessageBoxImage.Warning);
+                return;
+            }
+
             try
             {
                 var result = System.Windows.MessageBox.Show(
@@ -192,6 +205,162 @@ namespace Jtodo.ViewModels
             {
                 IsLoading = false;
             }
+        }
+
+        private void SelectColor(TypeItemViewModel? item)
+        {
+            if (item == null) return;
+
+            try
+            {
+                // Create a simple WPF window for color selection
+                var colorPickerWindow = new System.Windows.Window
+                {
+                    Title = "Select Color",
+                    Width = 400,
+                    Height = 300,
+                    WindowStartupLocation = System.Windows.WindowStartupLocation.CenterScreen,
+                    ResizeMode = System.Windows.ResizeMode.NoResize
+                };
+
+                var stackPanel = new System.Windows.Controls.StackPanel
+                {
+                    Margin = new System.Windows.Thickness(20)
+                };
+
+                // Color sliders
+                var redSlider = CreateColorSlider("Red");
+                var greenSlider = CreateColorSlider("Green");
+                var blueSlider = CreateColorSlider("Blue");
+
+                // Preview
+                var preview = new System.Windows.Controls.Border
+                {
+                    Height = 60,
+                    Margin = new System.Windows.Thickness(0, 10, 0, 10),
+                    CornerRadius = new System.Windows.CornerRadius(5)
+                };
+
+                // Buttons
+                var buttonPanel = new System.Windows.Controls.StackPanel
+                {
+                    Orientation = System.Windows.Controls.Orientation.Horizontal,
+                    HorizontalAlignment = System.Windows.HorizontalAlignment.Center
+                };
+
+                var okButton = new System.Windows.Controls.Button
+                {
+                    Content = "OK",
+                    Width = 80,
+                    Height = 30,
+                    Margin = new System.Windows.Thickness(5)
+                };
+
+                var cancelButton = new System.Windows.Controls.Button
+                {
+                    Content = "Cancel",
+                    Width = 80,
+                    Height = 30,
+                    Margin = new System.Windows.Thickness(5)
+                };
+
+                bool? result = null;
+
+                okButton.Click += (s, e) =>
+                {
+                    result = true;
+                    colorPickerWindow.Close();
+                };
+
+                cancelButton.Click += (s, e) =>
+                {
+                    result = false;
+                    colorPickerWindow.Close();
+                };
+
+                System.Windows.RoutedPropertyChangedEventHandler<double> updatePreview = (s, e) =>
+                {
+                    var color = System.Windows.Media.Color.FromRgb(
+                        (byte)redSlider.Value,
+                        (byte)greenSlider.Value,
+                        (byte)blueSlider.Value);
+                    preview.Background = new System.Windows.Media.SolidColorBrush(color);
+                };
+
+                redSlider.ValueChanged += updatePreview;
+                greenSlider.ValueChanged += updatePreview;
+                blueSlider.ValueChanged += updatePreview;
+
+                // Set initial values
+                try
+                {
+                    var currentColor = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(item.ColorHex);
+                    redSlider.Value = currentColor.R;
+                    greenSlider.Value = currentColor.G;
+                    blueSlider.Value = currentColor.B;
+                }
+                catch
+                {
+                    redSlider.Value = 158;
+                    greenSlider.Value = 158;
+                    blueSlider.Value = 158;
+                }
+
+                buttonPanel.Children.Add(okButton);
+                buttonPanel.Children.Add(cancelButton);
+
+                stackPanel.Children.Add(redSlider);
+                stackPanel.Children.Add(greenSlider);
+                stackPanel.Children.Add(blueSlider);
+                stackPanel.Children.Add(preview);
+                stackPanel.Children.Add(buttonPanel);
+
+                colorPickerWindow.Content = stackPanel;
+                colorPickerWindow.ShowDialog();
+
+                if (result == true)
+                {
+                    var selectedColor = System.Windows.Media.Color.FromRgb(
+                        (byte)redSlider.Value,
+                        (byte)greenSlider.Value,
+                        (byte)blueSlider.Value);
+                    
+                    var hexColor = $"#{selectedColor.R:X2}{selectedColor.G:X2}{selectedColor.B:X2}";
+                    
+                    item.ColorHex = hexColor;
+                    
+                    if (item.IsEditing)
+                    {
+                        item.EditingColorHex = hexColor;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show($"Error selecting color: {ex.Message}", "Error");
+                Console.WriteLine($"[ERROR] Failed to select color: {ex.Message}");
+            }
+        }
+
+        private System.Windows.Controls.Slider CreateColorSlider(string label)
+        {
+            var panel = new System.Windows.Controls.StackPanel();
+            var textBlock = new System.Windows.Controls.TextBlock
+            {
+                Text = label,
+                Margin = new System.Windows.Thickness(0, 5, 0, 5)
+            };
+            
+            var slider = new System.Windows.Controls.Slider
+            {
+                Minimum = 0,
+                Maximum = 255,
+                Value = 128,
+                TickFrequency = 1,
+                IsSnapToTickEnabled = true
+            };
+
+            return slider;
         }
 
         private bool IsValidHexColor(string color)

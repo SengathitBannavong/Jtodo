@@ -41,6 +41,25 @@ namespace Jtodo.Services
             await _unitOfWork.TypeRepository.DeleteTypeAsync(id);
             await _unitOfWork.SaveChangesAsync();
         }
+
+        public async Task<ulong> GetNoneTypeIdAsync()
+        {
+            var types = await _unitOfWork.TypeRepository.GetAllTypesAsync();
+            var noneType = types.FirstOrDefault(t => t.Text == "None");
+            
+            if (noneType == null)
+            {
+                // If "None" type doesn't exist, create it
+                var dbContext = _unitOfWork.GetDbContext();
+                await dbContext.EnsureDefaultTypeExistsAsync();
+                
+                // Retrieve again
+                types = await _unitOfWork.TypeRepository.GetAllTypesAsync();
+                noneType = types.FirstOrDefault(t => t.Text == "None");
+            }
+            
+            return noneType?.Id ?? 1; // Fallback to ID 1 if still not found
+        }
     }
 }
 

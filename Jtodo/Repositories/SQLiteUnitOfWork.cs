@@ -61,6 +61,11 @@ namespace Jtodo.Repositories
             return await _context.SaveChangesAsync();
         }
 
+        public SQLite GetDbContext()
+        {
+            return _context;
+        }
+
         protected virtual void Dispose(bool disposing)
         {
             if (!_disposed)

@@ -82,8 +82,25 @@ namespace Jtodo
             Console.WriteLine($"Startup Time: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
             Console.WriteLine();
 #endif
+
+            // Ensure default "None" type exists
+            InitializeDefaultDataAsync().Wait();
+
             Console.WriteLine("=== Application Startup Complete ===");
             Console.WriteLine();
+        }
+
+        private async System.Threading.Tasks.Task InitializeDefaultDataAsync()
+        {
+            try
+            {
+                var dbContext = UnitOfWork.GetDbContext();
+                await dbContext.EnsureDefaultTypeExistsAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ERROR] Failed to initialize default data: {ex.Message}");
+            }
         }
 
         protected override void OnExit(ExitEventArgs e)

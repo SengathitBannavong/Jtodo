@@ -135,7 +135,7 @@
 
                                             <!-- Color Column -->
                                             <Grid Grid.Column="1" Margin="10,0">
-                                                <!-- Display Mode - Color Preview -->
+                                                <!-- Display Mode - Color Preview (Clickable) -->
                                                 <Border Background="{Binding ColorHex}"
                                                         CornerRadius="5"
                                                         Width="80"
@@ -148,32 +148,46 @@
                                                                       Command="{Binding DataContext.StartEditTypeCommand, RelativeSource={RelativeSource AncestorType=Page}}"
                                                                       CommandParameter="{Binding}"/>
                                                     </Border.InputBindings>
-                                                    <TextBlock Text="{Binding ColorHex}" 
-                                                               Foreground="White"
-                                                               FontSize="11"
-                                                               FontWeight="SemiBold"
-                                                               HorizontalAlignment="Center"
-                                                               VerticalAlignment="Center"/>
+                                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding ColorHex}" 
+                                                                   Foreground="White"
+                                                                   FontSize="11"
+                                                                   FontWeight="SemiBold"
+                                                                   Margin="0,0,3,0"/>
+                                                    </StackPanel>
                                                 </Border>
                                                 
-                                                <!-- Edit Mode - Color Input -->
-                                                <TextBox Text="{Binding EditingColorHex, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                         VerticalContentAlignment="Center"
-                                                         BorderThickness="1"
-                                                         BorderBrush="#2196F3"
-                                                         MaxLength="7"
-                                                         Width="100"
-                                                         HorizontalAlignment="Left"
-                                                         Visibility="{Binding IsEditing, Converter={StaticResource BoolToVis}}">
-                                                    <TextBox.InputBindings>
-                                                        <KeyBinding Key="Enter" 
-                                                                    Command="{Binding DataContext.SaveTypeCommand, RelativeSource={RelativeSource AncestorType=Page}}"
-                                                                    CommandParameter="{Binding}"/>
-                                                        <KeyBinding Key="Escape" 
-                                                                    Command="{Binding DataContext.CancelEditTypeCommand, RelativeSource={RelativeSource AncestorType=Page}}"
-                                                                    CommandParameter="{Binding}"/>
-                                                    </TextBox.InputBindings>
-                                                </TextBox>
+                                                <!-- Edit Mode - Color Input with Picker Button -->
+                                                <StackPanel Orientation="Horizontal"
+                                                           Visibility="{Binding IsEditing, Converter={StaticResource BoolToVis}}">
+                                                    <TextBox Text="{Binding EditingColorHex, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                             VerticalContentAlignment="Center"
+                                                             BorderThickness="1"
+                                                             BorderBrush="#2196F3"
+                                                             MaxLength="7"
+                                                             Width="70">
+                                                        <TextBox.InputBindings>
+                                                            <KeyBinding Key="Enter" 
+                                                                        Command="{Binding DataContext.SaveTypeCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                                                        CommandParameter="{Binding}"/>
+                                                            <KeyBinding Key="Escape" 
+                                                                        Command="{Binding DataContext.CancelEditTypeCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                                                        CommandParameter="{Binding}"/>
+                                                        </TextBox.InputBindings>
+                                                    </TextBox>
+                                                    
+                                                    <Button Command="{Binding DataContext.SelectColorCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                                            CommandParameter="{Binding}"
+                                                            Background="#2196F3"
+                                                            BorderThickness="0"
+                                                            Width="25"
+                                                            Height="30"
+                                                            Cursor="Hand"
+                                                            ToolTip="Pick Color"
+                                                            Margin="5,0,0,0">
+                                                        <TextBlock Text="Edit" FontSize="12"/>
+                                                    </Button>
+                                                </StackPanel>
                                             </Grid>
 
                                             <!-- Delete Button -->
@@ -186,6 +200,20 @@
                                                     Height="30"
                                                     Cursor="Hand"
                                                     ToolTip="Delete Type">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="IsEnabled" Value="True"/>
+                                                        <Setter Property="Opacity" Value="1.0"/>
+                                                        <Style.Triggers>
+                                                            <!-- Disable if this is the "None" type -->
+                                                            <DataTrigger Binding="{Binding IsNoneType}" Value="True">
+                                                                <Setter Property="IsEnabled" Value="False"/>
+                                                                <Setter Property="Opacity" Value="0.4"/>
+                                                                <Setter Property="ToolTip" Value="Cannot delete default type"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Button.Style>
                                                 <Button.Template>
                                                     <ControlTemplate TargetType="Button">
                                                         <Border x:Name="Border"
@@ -199,6 +227,9 @@
                                                         <ControlTemplate.Triggers>
                                                             <Trigger Property="IsMouseOver" Value="True">
                                                                 <Setter TargetName="Border" Property="Background" Value="#D32F2F"/>
+                                                            </Trigger>
+                                                            <Trigger Property="IsEnabled" Value="False">
+                                                                <Setter TargetName="Border" Property="Background" Value="#CCCCCC"/>
                                                             </Trigger>
                                                         </ControlTemplate.Triggers>
                                                     </ControlTemplate>
