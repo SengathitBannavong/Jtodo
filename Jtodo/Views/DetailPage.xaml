@@ -253,11 +253,14 @@
                                                     
                                                     <!-- Edit Mode -->
                                                     <TextBox Text="{Binding Title, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}"
-                                                            VerticalContentAlignment="Center"
-                                                            BorderThickness="1"
-                                                            BorderBrush="#2196F3"
-                                                            Visibility="{Binding IsEditing, Converter={StaticResource BoolToVis}}"
-                                                            Validation.ErrorTemplate="{StaticResource ValidationErrorTemplate}">
+                                                             VerticalContentAlignment="Center"
+                                                             BorderThickness="1"
+                                                             BorderBrush="#2196F3"
+                                                             Visibility="{Binding IsEditing, Converter={StaticResource BoolToVis}}"
+                                                             Validation.ErrorTemplate="{StaticResource ValidationErrorTemplate}"
+                                                             Loaded="TitleTextBox_Loaded"
+                                                             LostFocus="EditControl_LostFocus"
+                                                             Tag="{Binding}">
                                                         <TextBox.InputBindings>
                                                             <KeyBinding Key="Enter" 
                                                                         Command="{Binding DataContext.SaveEditItemCommand, RelativeSource={RelativeSource AncestorType=Page}}"
@@ -408,6 +411,7 @@
                         <!-- New Task Button -->
                         <Button Grid.Row="2"
                                 Content="+ New Task"
+                                Command="{Binding AddTaskCommand}"
                                 Background="Transparent"
                                 BorderThickness="0"
                                 FontSize="14"

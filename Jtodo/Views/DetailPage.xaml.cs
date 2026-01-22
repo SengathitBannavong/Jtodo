@@ -45,6 +45,34 @@ namespace Jtodo.Views
             // TODO: Implement menu functionality
         }
 
+        private void TitleTextBox_Loaded(object sender, RoutedEventArgs e)
+        {
+            // Auto-focus when TextBox is loaded in edit mode
+            if (sender is TextBox textBox && textBox.DataContext is TodoItemDto item)
+            {
+                if (item.IsEditing && string.IsNullOrEmpty(item.Title))
+                {
+                    textBox.Focus();
+                    textBox.SelectAll();
+                }
+            }
+        }
+
+        private async void EditControl_LostFocus(object sender, RoutedEventArgs e)
+        {
+            // Auto-save when edit control loses focus
+            if (sender is FrameworkElement element && element.Tag is TodoItemDto item)
+            {
+                if (item.IsEditing && _viewModel.SaveEditItemCommand.CanExecute(item))
+                {
+                    await System.Threading.Tasks.Task.Run(() => 
+                    {
+                        Dispatcher.Invoke(() => _viewModel.SaveEditItemCommand.Execute(item));
+                    });
+                }
+            }
+        }
+
         private void DatePicker_PreviewKeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)

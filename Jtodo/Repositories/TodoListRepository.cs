@@ -178,6 +178,28 @@ namespace Jtodo.Repositories
             return await _db_context.TodoLists.AnyAsync(tl => tl.Id == id);
         }
 
+        public async Task Add_TodoItem_To_TodoList_Async(ulong todoListId, ulong todoItemId)
+        {
+            try
+            {
+                Console.WriteLine($"[INFO] Adding TodoItem ID: {todoItemId} to TodoList ID: {todoListId}");
+                
+                var junction = new TodoListItem
+                {
+                    TodoListId = todoListId,
+                    TodoItemId = todoItemId
+                };
+                
+                await _db_context.TodoListItems.AddAsync(junction);
+                Console.WriteLine("[INFO] Junction record created successfully");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ERROR] Error creating junction record: {ex.Message}");
+                throw;
+            }
+        }
+
         // Helper methods
         private async Task LoadTodoItemsAsync(TodoList todoList)
         {

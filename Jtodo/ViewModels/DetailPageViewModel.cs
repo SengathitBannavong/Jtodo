@@ -114,6 +114,7 @@ namespace Jtodo.ViewModels
         public ICommand CancelEditDescriptionCommand { get; }
         public ICommand StartEditItemCommand { get; }
         public ICommand SaveEditItemCommand { get; }
+        public ICommand AddTaskCommand { get; }
 
         public DetailPageViewModel(INavigationService navigationService, TodoListService todoListService, 
             TodoItemService todoItemService, TypeService typeService)
@@ -139,6 +140,7 @@ namespace Jtodo.ViewModels
             CancelEditDescriptionCommand = new RelayCommand(p => CancelEditDescription());
             StartEditItemCommand = new RelayCommand(p => StartEditItem(p as TodoItemDto));
             SaveEditItemCommand = new RelayCommand(async p => await SaveEditItemAsync(p as TodoItemDto));
+            AddTaskCommand = new RelayCommand(async p => await AddTaskAsync());
         }
 
         public async Task LoadTodoListByIdAsync(ulong todoListId)
@@ -337,6 +339,59 @@ namespace Jtodo.ViewModels
             {
                 System.Windows.MessageBox.Show($"Error saving item: {ex.Message}", "Error");
                 Console.WriteLine($"[ERROR] Failed to save TodoItem: {ex.Message}");
+            }
+        }
+
+        // Add new task method
+        private async Task AddTaskAsync()
+        {
+            try
+            {
+                if (CurrentTodoList == null)
+                {
+                    System.Windows.MessageBox.Show("No TodoList is currently loaded", "Error");
+                    return;
+                }
+
+                IsLoading = true;
+                LoadingMessage = "Adding new task...";
+
+                // Create new task in database
+                var newTaskDto = await _todoListService.CreateTaskInListAsync(CurrentTodoList.Id);
+
+                // Map TypeName for display
+                var type = AvailableTypes.FirstOrDefault(t => t.Id == newTaskDto.TypeId);
+                if (type != null)
+                {
+                    newTaskDto.TypeName = type.Text;
+                }
+
+                // Subscribe to property changes
+                newTaskDto.PropertyChanged += OnItemPropertyChanged;
+
+                // Set editing mode and clear title for immediate editing
+                newTaskDto.IsEditing = true;
+                newTaskDto.Title = "";
+
+                // Add to collection
+                TodoItems.Add(newTaskDto);
+
+                // Also add to CurrentTodoList to keep it in sync
+                if (CurrentTodoList.TodoItems != null)
+                {
+                    CurrentTodoList.TodoItems.Add(newTaskDto);
+                }
+
+                Console.WriteLine($"[INFO] Successfully added new task to UI");
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show($"Error adding task: {ex.Message}", "Error");
+                Console.WriteLine($"[ERROR] Failed to add task: {ex.Message}");
+            }
+            finally
+            {
+                IsLoading = false;
             }
         }
 
