@@ -4,12 +4,15 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:local="clr-namespace:Jtodo.Views"
+      xmlns:conv="clr-namespace:Jtodo.Commands"
       mc:Ignorable="d" 
       d:DesignHeight="700" d:DesignWidth="1200"
       FontFamily="Segoe UI"
       Title="DetailPage">
 
     <Page.Resources>
+        <conv:BooleanToVisibilityConverter x:Key="BoolToVis"/>
+        <conv:InverseBooleanToVisibilityConverter x:Key="InverseBoolToVis"/>
         <!-- Custom RadioButton Style for View Tabs -->
         <Style x:Key="ViewTabRadioButton" TargetType="RadioButton">
             <Setter Property="Template">
@@ -50,51 +53,106 @@
                 </Grid.RowDefinitions>
 
                 <!-- Background Image Placeholder -->
-                <Border Background="#9E9E9E" Margin="-93,0,-82,114" Grid.RowSpan="2">
+                <Border Background="#9E9E9E" 
+                        Margin="-93,0,-82,0" 
+                        VerticalAlignment="Top" 
+                        Height="220" 
+                        Grid.RowSpan="2">
                     <TextBlock Text="background" 
-							   FontSize="24" 
-							   Foreground="White" 
-							   HorizontalAlignment="Center" 
-							   VerticalAlignment="Center"/>
+                              FontSize="24" 
+                              Foreground="White" 
+                              HorizontalAlignment="Center" 
+                              VerticalAlignment="Center"/>
                 </Border>
-                <!-- Profile Photo (overlaps header with negative margin) -->
+
                 <Border Grid.Row="0"
-							Width="145"
-							Background="#B0B0B0"
-							CornerRadius="20"
-							Margin="31,47,0,89"
-							HorizontalAlignment="Left" Grid.RowSpan="2">
+                        Width="145"
+                        Height="145"
+                        Background="#B0B0B0"
+                        CornerRadius="20"
+                        Margin="31,47,0,0"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Left" 
+                        Grid.RowSpan="2">
                     <Border.Effect>
                         <DropShadowEffect Color="Black" Opacity="0.3" BlurRadius="15" ShadowDepth="5"/>
                     </Border.Effect>
                     <TextBlock Text="Photo" 
-								   FontSize="20" 
-								   Foreground="White" 
-								   HorizontalAlignment="Center" 
-								   VerticalAlignment="Center"/>
-
+                              FontSize="20" 
+                              Foreground="White" 
+                              HorizontalAlignment="Center" 
+                              VerticalAlignment="Center"/>
                 </Border>
 
                 <!-- Title and Description -->
-                <StackPanel Grid.Row="1" Margin="0,30,0,0">
-                    <TextBlock FontSize="28" 
-                               FontWeight="Bold" 
-                               Foreground="#333">
-                        <TextBlock.Text>
-                            <MultiBinding StringFormat="{}{0} #{1}">
-                                <Binding Path="ListTitle"/>
-                                <Binding Path="ListId"/>
-                            </MultiBinding>
-                        </TextBlock.Text>
-                    </TextBlock>
+                <StackPanel Grid.Row="1" Margin="0,50,0,0">
+                    <!-- Title with Double-Click Edit -->
+                    <Grid>
+                        <!-- TextBlock (Display Mode) -->
+                        <TextBlock FontSize="28" 
+                            FontWeight="Bold" 
+                            Foreground="#333"
+                            Cursor="Hand"
+                            Visibility="{Binding IsEditingTitle, Converter={StaticResource InverseBoolToVis}}">
+                            <TextBlock.InputBindings>
+                                <MouseBinding Gesture="LeftDoubleClick" 
+                              Command="{Binding StartEditTitleCommand}"/>
+                            </TextBlock.InputBindings>
+                            <TextBlock.Text>
+                                <MultiBinding StringFormat="{}{0} #{1}">
+                                    <Binding Path="ListTitle"/>
+                                    <Binding Path="ListId"/>
+                                </MultiBinding>
+                            </TextBlock.Text>
+                        </TextBlock>
 
-                    <TextBlock Text="{Binding ListDescription}"
-                               FontSize="14"
-                               Foreground="#666"
-                               TextWrapping="Wrap"
-                               Margin="0,10,0,0"
-                               MaxWidth="800"
-                               HorizontalAlignment="Left"/>
+                        <!-- TextBox (Edit Mode) -->
+                        <TextBox FontSize="28" 
+                            FontWeight="Bold"
+                            Text="{Binding EditingTitle, UpdateSourceTrigger=PropertyChanged}"
+                            Visibility="{Binding IsEditingTitle, Converter={StaticResource BoolToVis}}"
+                            Name="TitleEditBox">
+                            <TextBox.InputBindings>
+                                <KeyBinding Key="Enter" Command="{Binding SaveTitleCommand}"/>
+                                <KeyBinding Key="Escape" Command="{Binding CancelEditTitleCommand}"/>
+                            </TextBox.InputBindings>
+                        </TextBox>
+                    </Grid>
+
+                    <!-- Description with Double-Click Edit -->
+                    <Grid Margin="0,10,0,0">
+                        <!-- TextBlock (Display Mode) -->
+                        <TextBlock Text="{Binding ListDescription}"
+                            FontSize="14"
+                            Foreground="#666"
+                            TextWrapping="Wrap"
+                            MaxWidth="800"
+                            HorizontalAlignment="Left"
+                            Cursor="Hand"
+                            Visibility="{Binding IsEditingDescription, Converter={StaticResource InverseBoolToVis}}">
+                            <TextBlock.InputBindings>
+                                <MouseBinding Gesture="LeftDoubleClick" 
+                              Command="{Binding StartEditDescriptionCommand}"/>
+                            </TextBlock.InputBindings>
+                        </TextBlock>
+
+                        <!-- TextBox (Edit Mode) -->
+                        <TextBox Text="{Binding EditingDescription, UpdateSourceTrigger=PropertyChanged}"
+                            FontSize="14"
+                            TextWrapping="Wrap"
+                            MaxWidth="800"
+                            MinHeight="50"
+                            AcceptsReturn="True"
+                            Visibility="{Binding IsEditingDescription, Converter={StaticResource BoolToVis}}"
+                            Name="DescriptionEditBox">
+                            <TextBox.InputBindings>
+                                <!-- Ctrl+Enter for save -->
+                                <KeyBinding Key="Enter" Modifiers="Control" Command="{Binding SaveDescriptionCommand}"/>
+                                <!-- Escape for cancel -->
+                                <KeyBinding Key="Escape" Command="{Binding CancelEditDescriptionCommand}"/>
+                            </TextBox.InputBindings>
+                        </TextBox>
+                    </Grid>
                 </StackPanel>
 
                 <!-- View Tabs -->
@@ -103,27 +161,17 @@
                         CornerRadius="25"
                         Padding="10"
                         Margin="0,30,0,20"
-                        HorizontalAlignment="Left" Width="377">
+                        HorizontalAlignment="Left" Width="130">
                     <Border.Effect>
                         <DropShadowEffect Color="Black" Opacity="0.1" BlurRadius="8" ShadowDepth="2"/>
                     </Border.Effect>
                     <StackPanel Orientation="Horizontal">
                         <RadioButton x:Name="TableViewRadio"
-                                     Content="Table view"
-                                     IsChecked="True"
-                                     GroupName="ViewMode"
-                                     Style="{StaticResource ViewTabRadioButton}"
-                                     Margin="10,5"/>
-                        <RadioButton x:Name="GridViewRadio"
-                                     Content="Grid view"
-                                     GroupName="ViewMode"
-                                     Style="{StaticResource ViewTabRadioButton}"
-                                     Margin="10,5"/>
-                        <RadioButton x:Name="CalendarViewRadio"
-                                     Content="Calendar view"
-                                     GroupName="ViewMode"
-                                     Style="{StaticResource ViewTabRadioButton}"
-                                     Margin="10,5"/>
+                          Content="Table view"
+                          IsChecked="True"
+                          GroupName="ViewMode"
+                          Style="{StaticResource ViewTabRadioButton}"
+                          Margin="10,5"/>
                     </StackPanel>
                 </Border>
 
@@ -250,16 +298,16 @@
 
         <!-- Hamburger Menu -->
         <Button x:Name="MenuButton" 
-                 Grid.Column="0"
-                 Width="30" Height="25"
-                 HorizontalAlignment="Left"
-                 Background="Transparent"
-                 BorderThickness="0"
-                 Cursor="Hand"
-                 VerticalAlignment="Top"
-                 Grid.Row="1"
-                 Margin="4,10,0,0"
-                >
+                Grid.Column="0"
+                Width="30" Height="25"
+                HorizontalAlignment="Left"
+                Background="Transparent"
+                BorderThickness="0"
+                Cursor="Hand"
+                VerticalAlignment="Top"
+                Grid.Row="1"
+                Margin="4,10,0,0"
+              >
             <StackPanel VerticalAlignment="Center">
                 <Rectangle Fill="#333" Height="3" Width="28" Margin="0,3" RadiusX="1.5" RadiusY="1.5"/>
                 <Rectangle Fill="#333" Height="3" Width="28" Margin="0,3" RadiusX="1.5" RadiusY="1.5"/>

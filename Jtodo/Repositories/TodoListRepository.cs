@@ -88,6 +88,15 @@ namespace Jtodo.Repositories
 
         public async Task Update_Todo_List_Async(TodoList todoList)
         {
+            var trackedEntity = _db_context.ChangeTracker.Entries<TodoList>()
+                .FirstOrDefault(e => e.Entity.Id == todoList.Id)?.Entity;
+
+            if (trackedEntity != null)
+            {
+                Console.WriteLine("[INFO] Detaching existing tracked TodoList entity before update");
+                _db_context.Entry(trackedEntity).State = EntityState.Detached;
+            }
+       
             try
             {
                 Console.WriteLine($"[INFO] Updating TodoList async: {todoList.Title}");

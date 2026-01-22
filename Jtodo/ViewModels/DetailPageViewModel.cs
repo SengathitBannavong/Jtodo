@@ -1,16 +1,14 @@
-﻿using Jtodo.DTOs;
+﻿using Jtodo.Commands;
+using Jtodo.DTOs;
 using Jtodo.Interfaces;
 using Jtodo.Services;
 using System;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
+using System.Windows.Input;
 
 namespace Jtodo.ViewModels
 {
-    /// <summary>
-    /// ViewModel for Detail Page
-    /// ✅ ใช้ DTOs และ load TodoItems จาก DTO
-    /// </summary>
     public class DetailPageViewModel : ViewModelBase
     {
         private readonly TodoListService _todoListService;
@@ -21,55 +19,74 @@ namespace Jtodo.ViewModels
         private string _listDescription;
         private ulong _listId;
 
+        // Edit properties
+        private bool _isEditingTitle;
+        private bool _isEditingDescription;
+        private string _editingTitle;
+        private string _editingDescription;
+
         public ObservableCollection<TodoItemDto> TodoItems
         {
             get => _todoItems;
-            set
-            {
-                _todoItems = value;
-                OnPropertyChanged();
-            }
+            set { _todoItems = value; OnPropertyChanged(); }
         }
 
         public string ListTitle
         {
             get => _listTitle;
-            set
-            {
-                _listTitle = value;
-                OnPropertyChanged();
-            }
+            set { _listTitle = value; OnPropertyChanged(); }
         }
 
         public string ListDescription
         {
             get => _listDescription;
-            set
-            {
-                _listDescription = value;
-                OnPropertyChanged();
-            }
+            set { _listDescription = value; OnPropertyChanged(); }
         }
 
         public ulong ListId
         {
             get => _listId;
-            set
-            {
-                _listId = value;
-                OnPropertyChanged();
-            }
+            set { _listId = value; OnPropertyChanged(); }
         }
 
         public TodoListDto? CurrentTodoList
         {
             get => _currentTodoList;
-            private set
-            {
-                _currentTodoList = value;
-                OnPropertyChanged();
-            }
+            private set { _currentTodoList = value; OnPropertyChanged(); }
         }
+
+        // Edit properties
+        public bool IsEditingTitle
+        {
+            get => _isEditingTitle;
+            set { _isEditingTitle = value; OnPropertyChanged(); }
+        }
+
+        public string EditingTitle
+        {
+            get => _editingTitle;
+            set { _editingTitle = value; OnPropertyChanged(); }
+        }
+
+        public bool IsEditingDescription
+        {
+            get => _isEditingDescription;
+            set { _isEditingDescription = value; OnPropertyChanged(); }
+        }
+
+        public string EditingDescription
+        {
+            get => _editingDescription;
+            set { _editingDescription = value; OnPropertyChanged(); }
+        }
+
+        // Commands
+        public ICommand StartEditTitleCommand { get; }
+        public ICommand StartEditDescriptionCommand { get; }
+        public ICommand SaveTitleCommand { get; }
+        public ICommand SaveDescriptionCommand { get; }
+        public ICommand CancelEditTitleCommand { get; }
+        public ICommand CancelEditDescriptionCommand { get; }
 
         public DetailPageViewModel(INavigationService navigationService, TodoListService todoListService)
         {
@@ -78,6 +95,15 @@ namespace Jtodo.ViewModels
             _todoItems = new ObservableCollection<TodoItemDto>();
             _listTitle = string.Empty;
             _listDescription = string.Empty;
+            _editingTitle = string.Empty;
+            _editingDescription = string.Empty;
+
+            StartEditTitleCommand = new RelayCommand(p => StartEditTitle());
+            StartEditDescriptionCommand = new RelayCommand(p => StartEditDescription());
+            SaveTitleCommand = new RelayCommand(async p => await SaveTitleAsync());
+            SaveDescriptionCommand = new RelayCommand(async p => await SaveDescriptionAsync());
+            CancelEditTitleCommand = new RelayCommand(p => CancelEditTitle());
+            CancelEditDescriptionCommand = new RelayCommand(p => CancelEditDescription());
         }
 
         public async Task LoadTodoListByIdAsync(ulong todoListId)
@@ -88,7 +114,6 @@ namespace Jtodo.ViewModels
                 LoadingMessage = "Loading Detail....";
 
                 var todoListDto = await _todoListService.Get_Todo_List_Async(todoListId);
-
                 if (todoListDto != null)
                 {
                     CurrentTodoList = todoListDto;
@@ -97,42 +122,16 @@ namespace Jtodo.ViewModels
                     ListDescription = todoListDto.Description;
 
                     TodoItems.Clear();
-                    if (todoListDto.TodoItems != null && todoListDto.TodoItems.Count > 0)
+                    if (todoListDto.TodoItems != null)
                     {
-                        foreach (var itemDto in todoListDto.TodoItems)
-                        {
-                            TodoItems.Add(itemDto);
-                        }
-                        
-                        Console.WriteLine($"[INFO] Loaded {TodoItems.Count} TodoItems for TodoList ID {todoListId}");
+                        foreach (var item in todoListDto.TodoItems)
+                            TodoItems.Add(item);
                     }
-                    else
-                    {
-                        Console.WriteLine($"[WARNING] TodoList ID {todoListId} has no TodoItems");
-                    }
-                }
-                else
-                {
-                    ListTitle = "Not Found Todo";
-                    ListDescription = string.Empty;
-                    
-                    System.Windows.MessageBox.Show(
-                        $"Not Found Todo with ID: {todoListId}",
-                        "Invalid",
-                        System.Windows.MessageBoxButton.OK,
-                        System.Windows.MessageBoxImage.Warning);
                 }
             }
             catch (Exception ex)
             {
-                System.Windows.MessageBox.Show(
-                    $"Error Fetch Data: {ex.Message}",
-                    "Invalid",
-                    System.Windows.MessageBoxButton.OK,
-                    System.Windows.MessageBoxImage.Error);
-                    
-                Console.WriteLine($"[ERROR] {ex.Message}");
-                Console.WriteLine(ex.StackTrace);
+                System.Windows.MessageBox.Show($"Error: {ex.Message}", "Error");
             }
             finally
             {
@@ -140,10 +139,78 @@ namespace Jtodo.ViewModels
             }
         }
 
-        [Obsolete("Use LoadTodoListByIdAsync instead")]
-        public void LoadTodoListById(ulong todoListId)
+        // Title edit methods
+        private void StartEditTitle()
         {
-            _ = LoadTodoListByIdAsync(todoListId);
+            EditingTitle = ListTitle;
+            IsEditingTitle = true;
+        }
+
+        private async Task SaveTitleAsync()
+        {
+            if (string.IsNullOrWhiteSpace(EditingTitle))
+            {
+                System.Windows.MessageBox.Show("Title Cant Empty", "Warning");
+                return;
+            }
+
+            try
+            {
+                if (CurrentTodoList != null)
+                {
+                    CurrentTodoList.Title = EditingTitle;
+                    await _todoListService.Update_Todo_List_Async(CurrentTodoList);
+                    ListTitle = EditingTitle;
+                    IsEditingTitle = false;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show($"Error: {ex.Message}", "Error");
+            }
+        }
+
+        private void CancelEditTitle()
+        {
+            EditingTitle = ListTitle;
+            IsEditingTitle = false;
+        }
+
+        // Description edit methods
+        private void StartEditDescription()
+        {
+            EditingDescription = ListDescription;
+            IsEditingDescription = true;
+        }
+
+        private async Task SaveDescriptionAsync()
+        {
+            if(string.IsNullOrEmpty(EditingDescription))
+            {
+                System.Windows.MessageBox.Show("Description Cant Empty", "Warning");
+                return;
+            }
+
+            try
+            {
+                if (CurrentTodoList != null)
+                {
+                    CurrentTodoList.Description = EditingDescription ?? string.Empty;
+                    await _todoListService.Update_Todo_List_Async(CurrentTodoList);
+                    ListDescription = EditingDescription ?? string.Empty;
+                    IsEditingDescription = false;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show($"Error: {ex.Message}", "Error");
+            }
+        }
+
+        private void CancelEditDescription()
+        {
+            EditingDescription = ListDescription;
+            IsEditingDescription = false;
         }
 
         public void NavigateBack()
