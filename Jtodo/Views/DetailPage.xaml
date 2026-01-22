@@ -6,6 +6,7 @@
       xmlns:local="clr-namespace:Jtodo.Views"
       xmlns:conv="clr-namespace:Jtodo.Commands"
       xmlns:values="clr-namespace:Jtodo.Values"
+      xmlns:sys="clr-namespace:System;assembly=mscorlib"
       mc:Ignorable="d" 
       d:DesignHeight="700" d:DesignWidth="1200"
       FontFamily="Segoe UI"
@@ -14,6 +15,15 @@
     <Page.Resources>
         <conv:BooleanToVisibilityConverter x:Key="BoolToVis"/>
         <conv:InverseBooleanToVisibilityConverter x:Key="InverseBoolToVis"/>
+        <conv:SortIndicatorConverter x:Key="SortIndicatorConverter"/>
+        
+        <!-- Column name strings for sort indicators -->
+        <sys:String x:Key="NameColumn">Name</sys:String>
+        <sys:String x:Key="DescriptionColumn">Description</sys:String>
+        <sys:String x:Key="PriorityColumn">Priority</sys:String>
+        <sys:String x:Key="StatusColumn">Status</sys:String>
+        <sys:String x:Key="TypeColumn">Type</sys:String>
+        <sys:String x:Key="DateColumn">Date</sys:String>
 
         <!-- Validation Error Template -->
         <ControlTemplate x:Key="ValidationErrorTemplate">
@@ -197,12 +207,108 @@
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
 
-                        <!-- Column Headers -->
-                        <Border Grid.Row="0" 
+                        <!-- Filter Bar -->
+                        <Border Grid.Row="0"
+                                Background="#F5F5F5"
+                                CornerRadius="10"
+                                Padding="15,10"
+                                Margin="0,0,0,10">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Filter Label -->
+                                <TextBlock Grid.Column="0" 
+                                           Text="Filter:" 
+                                           FontWeight="SemiBold"
+                                           VerticalAlignment="Center"
+                                           Margin="0,0,15,0"/>
+
+                                <!-- Priority Filter -->
+                                <StackPanel Grid.Column="1" Margin="5,0">
+                                    <TextBlock Text="Priority" FontSize="11" Margin="0,0,0,3"/>
+                                    <ComboBox ItemsSource="{Binding Priorities}"
+                                              SelectedItem="{Binding SelectedPriorityFilter, Mode=TwoWay}"
+                                              Height="28">
+                                        <ComboBox.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <VirtualizingStackPanel />
+                                            </ItemsPanelTemplate>
+                                        </ComboBox.ItemsPanel>
+                                        <ComboBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding}" />
+                                            </DataTemplate>
+                                        </ComboBox.ItemTemplate>
+                                    </ComboBox>
+                                </StackPanel>
+
+                                <!-- Status Filter -->
+                                <StackPanel Grid.Column="2" Margin="5,0">
+                                    <TextBlock Text="Status" FontSize="11" Margin="0,0,0,3"/>
+                                    <ComboBox ItemsSource="{Binding Statuses}"
+                                              SelectedItem="{Binding SelectedStatusFilter, Mode=TwoWay}"
+                                              Height="28">
+                                        <ComboBox.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <VirtualizingStackPanel />
+                                            </ItemsPanelTemplate>
+                                        </ComboBox.ItemsPanel>
+                                        <ComboBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding}" />
+                                            </DataTemplate>
+                                        </ComboBox.ItemTemplate>
+                                    </ComboBox>
+                                </StackPanel>
+
+                                <!-- Type Filter -->
+                                <StackPanel Grid.Column="3" Margin="5,0">
+                                    <TextBlock Text="Type" FontSize="11" Margin="0,0,0,3"/>
+                                    <ComboBox ItemsSource="{Binding AvailableTypes}"
+                                              SelectedValue="{Binding SelectedTypeFilter, Mode=TwoWay}"
+                                              SelectedValuePath="Id"
+                                              DisplayMemberPath="Text"
+                                              Height="28"/>
+                                </StackPanel>
+
+                                <!-- Clear Filter Button -->
+                                <Button Grid.Column="4"
+                                        Command="{Binding ClearFilterCommand}"
+                                        Content="Clear"
+                                        Background="#2196F3"
+                                        Foreground="White"
+                                        BorderThickness="0"
+                                        Padding="15,0"
+                                        Margin="8,0,2,0"
+                                        Cursor="Hand"
+                                        Height="30"
+                                        VerticalAlignment="Bottom">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border Background="{TemplateBinding Background}"
+                                                    CornerRadius="5"
+                                                    Padding="{TemplateBinding Padding}">
+                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+                            </Grid>
+                        </Border>
+
+                        <!-- Column Headers (Clickable for Sorting) -->
+                        <Border Grid.Row="1" 
                                 Background="#E0E0E0" 
                                 CornerRadius="10,10,0,0"
                                 Padding="10">
@@ -217,18 +323,150 @@
                                     <ColumnDefinition Width="60"/>
                                 </Grid.ColumnDefinitions>
 
-                                <TextBlock Grid.Column="0" Text="Name" FontWeight="Bold" Margin="10,5"/>
-                                <TextBlock Grid.Column="1" Text="Description" FontWeight="Bold" Margin="10,5"/>
-                                <TextBlock Grid.Column="2" Text="Priority" FontWeight="Bold" Margin="10,5"/>
-                                <TextBlock Grid.Column="3" Text="Status" FontWeight="Bold" Margin="10,5"/>
-                                <TextBlock Grid.Column="4" Text="Type" FontWeight="Bold" Margin="10,5"/>
-                                <TextBlock Grid.Column="5" Text="Date" FontWeight="Bold" Margin="10,5"/>
+                                <!-- Name Header (Clickable) -->
+                                <Button Grid.Column="0" 
+                                        Command="{Binding SortByColumnCommand}"
+                                        CommandParameter="Name"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        HorizontalAlignment="Left"
+                                        Cursor="Hand"
+                                        Padding="10,5">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="Name " FontWeight="Bold"/>
+                                        <TextBlock FontWeight="Bold">
+                                            <TextBlock.Text>
+                                                <MultiBinding Converter="{StaticResource SortIndicatorConverter}">
+                                                    <Binding Path="CurrentSortColumn"/>
+                                                    <Binding Source="{StaticResource NameColumn}"/>
+                                                    <Binding Path="IsSortAscending"/>
+                                                </MultiBinding>
+                                            </TextBlock.Text>
+                                        </TextBlock>
+                                    </StackPanel>
+                                </Button>
+
+                                <!-- Description Header (Clickable) -->
+                                <Button Grid.Column="1" 
+                                        Command="{Binding SortByColumnCommand}"
+                                        CommandParameter="Description"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        HorizontalAlignment="Left"
+                                        Cursor="Hand"
+                                        Padding="10,5">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="Description " FontWeight="Bold"/>
+                                        <TextBlock FontWeight="Bold">
+                                            <TextBlock.Text>
+                                                <MultiBinding Converter="{StaticResource SortIndicatorConverter}">
+                                                    <Binding Path="CurrentSortColumn"/>
+                                                    <Binding Source="{StaticResource DescriptionColumn}"/>
+                                                    <Binding Path="IsSortAscending"/>
+                                                </MultiBinding>
+                                            </TextBlock.Text>
+                                        </TextBlock>
+                                    </StackPanel>
+                                </Button>
+
+                                <!-- Priority Header (Clickable) -->
+                                <Button Grid.Column="2" 
+                                        Command="{Binding SortByColumnCommand}"
+                                        CommandParameter="Priority"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        HorizontalAlignment="Left"
+                                        Cursor="Hand"
+                                        Padding="10,5">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="Priority " FontWeight="Bold"/>
+                                        <TextBlock FontWeight="Bold">
+                                            <TextBlock.Text>
+                                                <MultiBinding Converter="{StaticResource SortIndicatorConverter}">
+                                                    <Binding Path="CurrentSortColumn"/>
+                                                    <Binding Source="{StaticResource PriorityColumn}"/>
+                                                    <Binding Path="IsSortAscending"/>
+                                                </MultiBinding>
+                                            </TextBlock.Text>
+                                        </TextBlock>
+                                    </StackPanel>
+                                </Button>
+
+                                <!-- Status Header (Clickable) -->
+                                <Button Grid.Column="3" 
+                                        Command="{Binding SortByColumnCommand}"
+                                        CommandParameter="Status"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        HorizontalAlignment="Left"
+                                        Cursor="Hand"
+                                        Padding="10,5">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="Status " FontWeight="Bold"/>
+                                        <TextBlock FontWeight="Bold">
+                                            <TextBlock.Text>
+                                                <MultiBinding Converter="{StaticResource SortIndicatorConverter}">
+                                                    <Binding Path="CurrentSortColumn"/>
+                                                    <Binding Source="{StaticResource StatusColumn}"/>
+                                                    <Binding Path="IsSortAscending"/>
+                                                </MultiBinding>
+                                            </TextBlock.Text>
+                                        </TextBlock>
+                                    </StackPanel>
+                                </Button>
+
+                                <!-- Type Header (Clickable) -->
+                                <Button Grid.Column="4" 
+                                        Command="{Binding SortByColumnCommand}"
+                                        CommandParameter="Type"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        HorizontalAlignment="Left"
+                                        Cursor="Hand"
+                                        Padding="10,5">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="Type " FontWeight="Bold"/>
+                                        <TextBlock FontWeight="Bold">
+                                            <TextBlock.Text>
+                                                <MultiBinding Converter="{StaticResource SortIndicatorConverter}">
+                                                    <Binding Path="CurrentSortColumn"/>
+                                                    <Binding Source="{StaticResource TypeColumn}"/>
+                                                    <Binding Path="IsSortAscending"/>
+                                                </MultiBinding>
+                                            </TextBlock.Text>
+                                        </TextBlock>
+                                    </StackPanel>
+                                </Button>
+
+                                <!-- Date Header (Clickable) -->
+                                <Button Grid.Column="5" 
+                                        Command="{Binding SortByColumnCommand}"
+                                        CommandParameter="Date"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        HorizontalAlignment="Left"
+                                        Cursor="Hand"
+                                        Padding="10,5">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="Date " FontWeight="Bold"/>
+                                        <TextBlock FontWeight="Bold">
+                                            <TextBlock.Text>
+                                                <MultiBinding Converter="{StaticResource SortIndicatorConverter}">
+                                                    <Binding Path="CurrentSortColumn"/>
+                                                    <Binding Source="{StaticResource DateColumn}"/>
+                                                    <Binding Path="IsSortAscending"/>
+                                                </MultiBinding>
+                                            </TextBlock.Text>
+                                        </TextBlock>
+                                    </StackPanel>
+                                </Button>
+
                                 <TextBlock Grid.Column="6" Text="" FontWeight="Bold" Margin="10,5"/>
                             </Grid>
                         </Border>
 
-                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Height="300">
-                            <ItemsControl ItemsSource="{Binding TodoItems}">
+                        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" Height="300">
+                            <ItemsControl ItemsSource="{Binding TodoItemsView}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
                                         <Border BorderBrush="#E0E0E0" BorderThickness="0,0,0,1" Padding="10,10">
@@ -499,7 +737,7 @@
                         </ScrollViewer>
 
                         <!-- New Task Button -->
-                        <Button Grid.Row="2"
+                        <Button Grid.Row="3"
                                 Content="+ New Task"
                                 Command="{Binding AddTaskCommand}"
                                 Background="Transparent"
@@ -513,6 +751,7 @@
                 </Border>
             </Grid>
         </ScrollViewer>
+
 
         <!-- Back Button -->
         <Button

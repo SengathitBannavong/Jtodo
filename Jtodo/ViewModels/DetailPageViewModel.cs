@@ -8,6 +8,8 @@ using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Linq;
+using System.Windows.Data;
+using System.ComponentModel;
 
 namespace Jtodo.ViewModels
 {
@@ -19,6 +21,7 @@ namespace Jtodo.ViewModels
         private readonly INavigationService _navigationService;
         private TodoListDto? _currentTodoList;
         private ObservableCollection<TodoItemDto> _todoItems;
+        private ICollectionView _todoItemsView;
         private ObservableCollection<Domains.Type> _availableTypes;
         private ObservableCollection<Values.Priority> _priorities;
         private ObservableCollection<Values.Status> _statuses;
@@ -33,10 +36,68 @@ namespace Jtodo.ViewModels
         private string _editingDescription;
         private bool _isEditMode;
 
+        // Filter properties
+        private Priority? _selectedPriorityFilter;
+        private Status? _selectedStatusFilter;
+        private ulong? _selectedTypeFilter;
+        private string _sortColumn;
+        private bool _isSortAscending;
+
         public ObservableCollection<TodoItemDto> TodoItems
         {
             get => _todoItems;
             set { _todoItems = value; OnPropertyChanged(); }
+        }
+
+        public ICollectionView TodoItemsView
+        {
+            get => _todoItemsView;
+            set { _todoItemsView = value; OnPropertyChanged(); }
+        }
+
+        public Priority? SelectedPriorityFilter
+        {
+            get => _selectedPriorityFilter;
+            set
+            {
+                _selectedPriorityFilter = value;
+                OnPropertyChanged();
+                ApplyFilter();
+            }
+        }
+
+        public Status? SelectedStatusFilter
+        {
+            get => _selectedStatusFilter;
+            set
+            {
+                _selectedStatusFilter = value;
+                OnPropertyChanged();
+                ApplyFilter();
+            }
+        }
+
+        public ulong? SelectedTypeFilter
+        {
+            get => _selectedTypeFilter;
+            set
+            {
+                _selectedTypeFilter = value;
+                OnPropertyChanged();
+                ApplyFilter();
+            }
+        }
+
+        public string CurrentSortColumn
+        {
+            get => _sortColumn;
+            set { _sortColumn = value; OnPropertyChanged(); }
+        }
+
+        public bool IsSortAscending
+        {
+            get => _isSortAscending;
+            set { _isSortAscending = value; OnPropertyChanged(); }
         }
 
         public ObservableCollection<Domains.Type> AvailableTypes
@@ -124,6 +185,8 @@ namespace Jtodo.ViewModels
         public ICommand AddTaskCommand { get; }
         public ICommand ToggleEditModeCommand { get; }
         public ICommand DeleteTaskCommand { get; }
+        public ICommand ClearFilterCommand { get; }
+        public ICommand SortByColumnCommand { get; }
 
         public DetailPageViewModel(INavigationService navigationService, TodoListService todoListService, 
             TodoItemService todoItemService, TypeService typeService)
@@ -140,6 +203,12 @@ namespace Jtodo.ViewModels
             _listDescription = string.Empty;
             _editingTitle = string.Empty;
             _editingDescription = string.Empty;
+            _sortColumn = string.Empty;
+            _isSortAscending = true;
+
+            // Initialize CollectionView
+            _todoItemsView = CollectionViewSource.GetDefaultView(_todoItems);
+            _todoItemsView.Filter = FilterTodoItems;
 
             StartEditTitleCommand = new RelayCommand(p => StartEditTitle());
             StartEditDescriptionCommand = new RelayCommand(p => StartEditDescription());
@@ -152,6 +221,8 @@ namespace Jtodo.ViewModels
             AddTaskCommand = new RelayCommand(async p => await AddTaskAsync());
             ToggleEditModeCommand = new RelayCommand(p => ToggleEditMode());
             DeleteTaskCommand = new RelayCommand(async p => await DeleteTaskAsync(p as TodoItemDto));
+            ClearFilterCommand = new RelayCommand(p => ClearFilter());
+            SortByColumnCommand = new RelayCommand(p => SortByColumn(p as string));
         }
 
         public async Task LoadTodoListByIdAsync(ulong todoListId)
@@ -486,6 +557,91 @@ namespace Jtodo.ViewModels
             finally
             {
                 IsLoading = false;
+            }
+        }
+
+        // Filter and Sort Methods
+        private bool FilterTodoItems(object obj)
+        {
+            if (obj is not TodoItemDto item)
+                return false;
+
+            // Apply Priority filter
+            if (SelectedPriorityFilter.HasValue && item.Priority != SelectedPriorityFilter.Value)
+                return false;
+
+            // Apply Status filter
+            if (SelectedStatusFilter.HasValue && item.Status != SelectedStatusFilter.Value)
+                return false;
+
+            // Apply Type filter
+            if (SelectedTypeFilter.HasValue && item.TypeId != SelectedTypeFilter.Value)
+                return false;
+
+            return true;
+        }
+
+        private void ApplyFilter()
+        {
+            TodoItemsView?.Refresh();
+        }
+
+        private void ClearFilter()
+        {
+            SelectedPriorityFilter = null;
+            SelectedStatusFilter = null;
+            SelectedTypeFilter = null;
+            // Filter will be applied automatically due to property setters
+        }
+
+        private void SortByColumn(string? columnName)
+        {
+            if (string.IsNullOrEmpty(columnName))
+                return;
+
+            // Toggle sort direction if clicking the same column
+            if (_sortColumn == columnName)
+            {
+                _isSortAscending = !_isSortAscending;
+            }
+            else
+            {
+                _sortColumn = columnName;
+                _isSortAscending = true;
+            }
+
+            // Update public properties for UI binding
+            CurrentSortColumn = _sortColumn;
+            IsSortAscending = _isSortAscending;
+
+            // Clear existing sort descriptions
+            TodoItemsView.SortDescriptions.Clear();
+
+            // Add new sort description
+            var direction = _isSortAscending ? ListSortDirection.Ascending : ListSortDirection.Descending;
+            
+            switch (columnName.ToLower())
+            {
+                case "name":
+                case "title":
+                    TodoItemsView.SortDescriptions.Add(new SortDescription(nameof(TodoItemDto.Title), direction));
+                    break;
+                case "description":
+                    TodoItemsView.SortDescriptions.Add(new SortDescription(nameof(TodoItemDto.Description), direction));
+                    break;
+                case "priority":
+                    TodoItemsView.SortDescriptions.Add(new SortDescription(nameof(TodoItemDto.Priority), direction));
+                    break;
+                case "status":
+                    TodoItemsView.SortDescriptions.Add(new SortDescription(nameof(TodoItemDto.Status), direction));
+                    break;
+                case "type":
+                    TodoItemsView.SortDescriptions.Add(new SortDescription(nameof(TodoItemDto.TypeName), direction));
+                    break;
+                case "date":
+                case "duedate":
+                    TodoItemsView.SortDescriptions.Add(new SortDescription(nameof(TodoItemDto.DueDate), direction));
+                    break;
             }
         }
 
