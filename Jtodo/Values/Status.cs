@@ -3,9 +3,9 @@
     public enum Status
     {
         Pending,
-        InProgress,
+        Progress,
         Completed,
-        Explired,
+        Expired,
         Cancelled
     }
 }

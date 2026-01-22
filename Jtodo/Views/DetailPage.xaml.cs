@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using Jtodo.ViewModels;
+using Jtodo.DTOs;
 
 namespace Jtodo.Views
 {
@@ -12,7 +14,11 @@ namespace Jtodo.Views
         public DetailPage(string listId)
         {
             InitializeComponent();
-            _viewModel = new DetailPageViewModel(App.NavigationService, App.TodoListService);
+            _viewModel = new DetailPageViewModel(
+                App.NavigationService, 
+                App.TodoListService,
+                App.TodoItemService,
+                App.TypeService);
             DataContext = _viewModel;
 
             Loaded += async (s, e) =>
@@ -37,6 +43,22 @@ namespace Jtodo.Views
         private void MenuButton_Click(object sender, RoutedEventArgs e)
         {
             // TODO: Implement menu functionality
+        }
+
+        private void DatePicker_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                if (sender is DatePicker datePicker && datePicker.Tag is TodoItemDto item)
+                {
+                    // Execute the save command
+                    if (_viewModel.SaveEditItemCommand.CanExecute(item))
+                    {
+                        _viewModel.SaveEditItemCommand.Execute(item);
+                        e.Handled = true;
+                    }
+                }
+            }
         }
     }
 }

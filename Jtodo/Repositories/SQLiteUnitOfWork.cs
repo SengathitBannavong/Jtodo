@@ -10,6 +10,8 @@ namespace Jtodo.Repositories
     {
         private readonly SQLite _context;
         private TodoListRepository? _todoListRepository;
+        private TypeRepository? _typeRepository;
+        private TodoItemRepository? _todoItemRepository;
         private bool _disposed = false;
 
         public SQLiteUnitOfWork()
@@ -28,6 +30,24 @@ namespace Jtodo.Repositories
             {
                 _todoListRepository ??= new TodoListRepository(_context);
                 return _todoListRepository;
+            }
+        }
+
+        public TypeRepository TypeRepository
+        {
+            get
+            {
+                _typeRepository ??= new TypeRepository(_context);
+                return _typeRepository;
+            }
+        }
+
+        public TodoItemRepository TodoItemRepository
+        {
+            get
+            {
+                _todoItemRepository ??= new TodoItemRepository(_context);
+                return _todoItemRepository;
             }
         }
 

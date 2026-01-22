@@ -23,6 +23,8 @@ namespace Jtodo
 
         private static IAppUnit? _unitOfWork;
         private static TodoListService? _todoListService;
+        private static TodoItemService? _todoItemService;
+        private static TypeService? _typeService;
         private static INavigationService? _navigationService;
 
         public static IAppUnit UnitOfWork
@@ -40,6 +42,24 @@ namespace Jtodo
             {
                 _todoListService ??= new TodoListService(UnitOfWork);
                 return _todoListService;
+            }
+        }
+
+        public static TodoItemService TodoItemService
+        {
+            get
+            {
+                _todoItemService ??= new TodoItemService(UnitOfWork);
+                return _todoItemService;
+            }
+        }
+
+        public static TypeService TypeService
+        {
+            get
+            {
+                _typeService ??= new TypeService(UnitOfWork);
+                return _typeService;
             }
         }
 

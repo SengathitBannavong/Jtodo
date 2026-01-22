@@ -5,6 +5,7 @@
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:local="clr-namespace:Jtodo.Views"
       xmlns:conv="clr-namespace:Jtodo.Commands"
+      xmlns:values="clr-namespace:Jtodo.Values"
       mc:Ignorable="d" 
       d:DesignHeight="700" d:DesignWidth="1200"
       FontFamily="Segoe UI"
@@ -13,6 +14,16 @@
     <Page.Resources>
         <conv:BooleanToVisibilityConverter x:Key="BoolToVis"/>
         <conv:InverseBooleanToVisibilityConverter x:Key="InverseBoolToVis"/>
+        
+        <!-- Validation Error Template -->
+        <ControlTemplate x:Key="ValidationErrorTemplate">
+            <DockPanel>
+                <Border BorderBrush="Red" BorderThickness="2" CornerRadius="3">
+                    <AdornedElementPlaceholder/>
+                </Border>
+            </DockPanel>
+        </ControlTemplate>
+
         <!-- Custom RadioButton Style for View Tabs -->
         <Style x:Key="ViewTabRadioButton" TargetType="RadioButton">
             <Setter Property="Template">
@@ -225,18 +236,168 @@
                                                     <ColumnDefinition Width="*"/>
                                                     <ColumnDefinition Width="1.5*"/>
                                                 </Grid.ColumnDefinitions>
-                                                <TextBlock Grid.Column="0" Text="{Binding Title}" Margin="10,0"/>
-                                                <TextBlock Grid.Column="1" Text="{Binding Priority}" Margin="10,0"/>
-                                                <TextBlock Grid.Column="2" Text="{Binding Status}" Margin="10,0"/>
-                                                <TextBlock Grid.Column="3" Text="{Binding TypeId}" Margin="10,0"/>
-                                                <TextBlock Grid.Column="4" Margin="10,0">
-                                                    <TextBlock.Text>
-                                                        <MultiBinding StringFormat="{}{0:yyyy-MM-dd} → {1:yyyy-MM-dd}">
-                                                            <Binding Path="StartDate"/>
-                                                            <Binding Path="DueDate"/>
-                                                        </MultiBinding>
-                                                    </TextBlock.Text>
-                                                </TextBlock>
+                                                
+                                                <!-- Name Column (Title) -->
+                                                <Grid Grid.Column="0" Margin="10,0">
+                                                    <!-- Display Mode -->
+                                                    <TextBlock Text="{Binding Title}" 
+                                                              VerticalAlignment="Center"
+                                                              Cursor="Hand"
+                                                              Visibility="{Binding IsEditing, Converter={StaticResource InverseBoolToVis}}">
+                                                        <TextBlock.InputBindings>
+                                                            <MouseBinding Gesture="LeftDoubleClick" 
+                                                                          Command="{Binding DataContext.StartEditItemCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                                                          CommandParameter="{Binding}"/>
+                                                        </TextBlock.InputBindings>
+                                                    </TextBlock>
+                                                    
+                                                    <!-- Edit Mode -->
+                                                    <TextBox Text="{Binding Title, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}"
+                                                            VerticalContentAlignment="Center"
+                                                            BorderThickness="1"
+                                                            BorderBrush="#2196F3"
+                                                            Visibility="{Binding IsEditing, Converter={StaticResource BoolToVis}}"
+                                                            Validation.ErrorTemplate="{StaticResource ValidationErrorTemplate}">
+                                                        <TextBox.InputBindings>
+                                                            <KeyBinding Key="Enter" 
+                                                                        Command="{Binding DataContext.SaveEditItemCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                                                        CommandParameter="{Binding}"/>
+                                                        </TextBox.InputBindings>
+                                                    </TextBox>
+                                                </Grid>
+                                                
+                                                <!-- Priority Column -->
+                                                <Grid Grid.Column="1" Margin="10,0">
+                                                    <!-- Display Mode -->
+                                                    <TextBlock Text="{Binding Priority}" 
+                                                              VerticalAlignment="Center"
+                                                              Cursor="Hand"
+                                                              Visibility="{Binding IsEditing, Converter={StaticResource InverseBoolToVis}}">
+                                                        <TextBlock.InputBindings>
+                                                            <MouseBinding Gesture="LeftDoubleClick" 
+                                                                          Command="{Binding DataContext.StartEditItemCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                                                          CommandParameter="{Binding}"/>
+                                                        </TextBlock.InputBindings>
+                                                    </TextBlock>
+                                                    
+                                                    <!-- Edit Mode -->
+                                                    <ComboBox ItemsSource="{Binding DataContext.Priorities, RelativeSource={RelativeSource AncestorType=Page}}"
+                                                              SelectedItem="{Binding Priority, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                              BorderThickness="1"
+                                                              BorderBrush="#2196F3"
+                                                              Visibility="{Binding IsEditing, Converter={StaticResource BoolToVis}}"
+                                                              Tag="{Binding}">
+                                                        <ComboBox.InputBindings>
+                                                            <KeyBinding Key="Enter" 
+                                                                        Command="{Binding DataContext.SaveEditItemCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                                                        CommandParameter="{Binding}"/>
+                                                        </ComboBox.InputBindings>
+                                                    </ComboBox>
+                                                </Grid>
+                                                
+                                                <!-- Status Column -->
+                                                <Grid Grid.Column="2" Margin="10,0">
+                                                    <!-- Display Mode -->
+                                                    <TextBlock Text="{Binding Status}" 
+                                                              VerticalAlignment="Center"
+                                                              Cursor="Hand"
+                                                              Visibility="{Binding IsEditing, Converter={StaticResource InverseBoolToVis}}">
+                                                        <TextBlock.InputBindings>
+                                                            <MouseBinding Gesture="LeftDoubleClick" 
+                                                                          Command="{Binding DataContext.StartEditItemCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                                                          CommandParameter="{Binding}"/>
+                                                        </TextBlock.InputBindings>
+                                                    </TextBlock>
+                                                    
+                                                    <!-- Edit Mode -->
+                                                    <ComboBox ItemsSource="{Binding DataContext.Statuses, RelativeSource={RelativeSource AncestorType=Page}}"
+                                                              SelectedItem="{Binding Status, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                              BorderThickness="1"
+                                                              BorderBrush="#2196F3"
+                                                              Visibility="{Binding IsEditing, Converter={StaticResource BoolToVis}}"
+                                                              Tag="{Binding}">
+                                                        <ComboBox.InputBindings>
+                                                            <KeyBinding Key="Enter" 
+                                                                        Command="{Binding DataContext.SaveEditItemCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                                                        CommandParameter="{Binding}"/>
+                                                        </ComboBox.InputBindings>
+                                                    </ComboBox>
+                                                </Grid>
+                                                
+                                                <!-- Type Column -->
+                                                <Grid Grid.Column="3" Margin="10,0">
+                                                    <!-- Display Mode - Show TypeName instead of TypeId -->
+                                                    <TextBlock Text="{Binding TypeName}" 
+                                                              VerticalAlignment="Center"
+                                                              Cursor="Hand"
+                                                              Visibility="{Binding IsEditing, Converter={StaticResource InverseBoolToVis}}">
+                                                        <TextBlock.InputBindings>
+                                                            <MouseBinding Gesture="LeftDoubleClick" 
+                                                                          Command="{Binding DataContext.StartEditItemCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                                                          CommandParameter="{Binding}"/>
+                                                        </TextBlock.InputBindings>
+                                                    </TextBlock>
+                                                    
+                                                    <!-- Edit Mode - ComboBox with Type mapping -->
+                                                    <ComboBox ItemsSource="{Binding DataContext.AvailableTypes, RelativeSource={RelativeSource AncestorType=Page}}"
+                                                              SelectedValue="{Binding TypeId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                              SelectedValuePath="Id"
+                                                              DisplayMemberPath="Text"
+                                                              BorderThickness="1"
+                                                              BorderBrush="#2196F3"
+                                                              Visibility="{Binding IsEditing, Converter={StaticResource BoolToVis}}"
+                                                              Tag="{Binding}"
+                                                              >
+                                                        <ComboBox.InputBindings>
+                                                            <KeyBinding Key="Enter" 
+                                                                        Command="{Binding DataContext.SaveEditItemCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                                                        CommandParameter="{Binding}"/>
+                                                        </ComboBox.InputBindings>
+                                                    </ComboBox>
+                                                </Grid>
+                                                
+                                                <!-- Date Column -->
+                                                <Grid Grid.Column="4" Margin="10,0">
+                                                    <!-- Display Mode -->
+                                                    <TextBlock VerticalAlignment="Center"
+                                                              Cursor="Hand"
+                                                              Visibility="{Binding IsEditing, Converter={StaticResource InverseBoolToVis}}">
+                                                        <TextBlock.InputBindings>
+                                                            <MouseBinding Gesture="LeftDoubleClick" 
+                                                                          Command="{Binding DataContext.StartEditItemCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                                                          CommandParameter="{Binding}"/>
+                                                        </TextBlock.InputBindings>
+                                                        <TextBlock.Text>
+                                                            <MultiBinding StringFormat="{}{0:yyyy-MM-dd} → {1:yyyy-MM-dd}">
+                                                                <Binding Path="StartDate"/>
+                                                                <Binding Path="DueDate"/>
+                                                            </MultiBinding>
+                                                        </TextBlock.Text>
+                                                    </TextBlock>
+                                                    
+                                                    <!-- Edit Mode -->
+                                                    <StackPanel Orientation="Horizontal" 
+                                                                Visibility="{Binding IsEditing, Converter={StaticResource BoolToVis}}">
+                                                        <DatePicker SelectedDate="{Binding StartDate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}"
+                                                                    BorderThickness="1"
+                                                                    BorderBrush="#2196F3"
+                                                                    Width="100"
+                                                                    Margin="0,0,5,0"
+                                                                    Validation.ErrorTemplate="{StaticResource ValidationErrorTemplate}"
+                                                                    Tag="{Binding}"
+                                                                    PreviewKeyDown="DatePicker_PreviewKeyDown">
+                                                        </DatePicker>
+                                                        <TextBlock Text="→" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                                                        <DatePicker SelectedDate="{Binding DueDate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}"
+                                                                    BorderThickness="1"
+                                                                    BorderBrush="#2196F3"
+                                                                    Width="100"
+                                                                    Validation.ErrorTemplate="{StaticResource ValidationErrorTemplate}"
+                                                                    Tag="{Binding}"
+                                                                    PreviewKeyDown="DatePicker_PreviewKeyDown">
+                                                        </DatePicker>
+                                                    </StackPanel>
+                                                </Grid>
                                             </Grid>
                                         </Border>
                                     </DataTemplate>
