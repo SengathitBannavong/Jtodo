@@ -600,24 +600,5 @@
                 </ControlTemplate>
             </Button.Template>
         </Button>
-
-        <!-- Hamburger Menu -->
-        <Button x:Name="MenuButton" 
-                Grid.Column="0"
-                Width="30" Height="25"
-                HorizontalAlignment="Left"
-                Background="Transparent"
-                BorderThickness="0"
-                Cursor="Hand"
-                VerticalAlignment="Top"
-                Grid.Row="1"
-                Margin="4,10,0,0"
-              >
-            <StackPanel VerticalAlignment="Center">
-                <Rectangle Fill="#333" Height="3" Width="28" Margin="0,3" RadiusX="1.5" RadiusY="1.5"/>
-                <Rectangle Fill="#333" Height="3" Width="28" Margin="0,3" RadiusX="1.5" RadiusY="1.5"/>
-                <Rectangle Fill="#333" Height="3" Width="28" Margin="0,3" RadiusX="1.5" RadiusY="1.5"/>
-            </StackPanel>
-        </Button>
     </Grid>
 </Page>

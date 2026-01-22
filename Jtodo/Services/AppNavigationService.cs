@@ -18,6 +18,21 @@ namespace Jtodo.Services
             _navigationService?.Navigate(new DetailPage(listId));
         }
 
+        public void NavigateTo(string pageName)
+        {
+            switch (pageName)
+            {
+                case "WelcomePage":
+                    _navigationService?.Navigate(new WelcomePage());
+                    break;
+                case "TypeManagementPage":
+                    _navigationService?.Navigate(new TypeManagementPage());
+                    break;
+                default:
+                    break;
+            }
+        }
+
         public void GoBack()
         {
             _navigationService?.GoBack();

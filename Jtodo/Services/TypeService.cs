@@ -22,5 +22,25 @@ namespace Jtodo.Services
         {
             return await _unitOfWork.TypeRepository.GetTypeByIdAsync(id);
         }
+
+        public async Task<Domains.Type> CreateTypeAsync(Domains.Type type)
+        {
+            await _unitOfWork.TypeRepository.CreateTypeAsync(type);
+            await _unitOfWork.SaveChangesAsync();
+            return type;
+        }
+
+        public async Task UpdateTypeAsync(Domains.Type type)
+        {
+            await _unitOfWork.TypeRepository.UpdateTypeAsync(type);
+            await _unitOfWork.SaveChangesAsync();
+        }
+
+        public async Task DeleteTypeAsync(ulong id)
+        {
+            await _unitOfWork.TypeRepository.DeleteTypeAsync(id);
+            await _unitOfWork.SaveChangesAsync();
+        }
     }
 }
+

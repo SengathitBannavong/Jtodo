@@ -8,5 +8,9 @@ namespace Jtodo.Interfaces
     {
         Task<List<Domains.Type>> GetAllTypesAsync();
         Task<Domains.Type?> GetTypeByIdAsync(ulong id);
+        Task CreateTypeAsync(Domains.Type type);
+        Task UpdateTypeAsync(Domains.Type type);
+        Task DeleteTypeAsync(ulong id);
     }
 }
+

@@ -130,21 +130,6 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <!-- Hamburger Menu -->
-            <Button x:Name="MenuButton" 
-                    Grid.Column="0"
-                    Width="50" Height="50"
-                    Margin="20,0,0,0"
-                    Background="Transparent"
-                    BorderThickness="0"
-                    Cursor="Hand"
-                    VerticalAlignment="Center">
-                <StackPanel VerticalAlignment="Center">
-                    <Rectangle Fill="#333" Height="3" Width="28" Margin="0,3" RadiusX="1.5" RadiusY="1.5"/>
-                    <Rectangle Fill="#333" Height="3" Width="28" Margin="0,3" RadiusX="1.5" RadiusY="1.5"/>
-                    <Rectangle Fill="#333" Height="3" Width="28" Margin="0,3" RadiusX="1.5" RadiusY="1.5"/>
-                </StackPanel>
-            </Button>
 
             <!-- Welcome Title -->
             <TextBlock Grid.Column="1"
@@ -204,7 +189,7 @@
         <ScrollViewer Grid.Row="1" 
                       VerticalScrollBarVisibility="Auto"
                       HorizontalScrollBarVisibility="Disabled"
-                      Margin="40,30,40,30">
+                      Margin="60,30,30,10">
             
             <ItemsControl ItemsSource="{Binding DisplayItems}"
                          ItemTemplateSelector="{StaticResource GridTodoSelector}">

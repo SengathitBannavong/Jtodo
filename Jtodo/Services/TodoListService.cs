@@ -97,6 +97,100 @@ namespace Jtodo.Services
                 throw;
             }
         }
+
+        public async Task<List<TodoItemDto>> GetUpcomingTasksAsync(int daysAhead = 3)
+        {
+            try
+            {
+                var allItems = await _unitOfWork.TodoItemRepository.GetAllTodoItemsAsync();
+                var today = DateTime.Now.Date;
+                var endDate = today.AddDays(daysAhead);
+
+                var upcomingTasks = allItems
+                    .Where(item => item.DueDate.HasValue && 
+                                   item.DueDate.Value.Date >= today && 
+                                   item.DueDate.Value.Date <= endDate &&
+                                   item.Status != Status.Completed &&
+                                   item.Status != Status.Cancelled)
+                    .OrderBy(item => item.DueDate)
+                    .Select(item => item.ToDto())
+                    .ToList();
+
+                return upcomingTasks;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ERROR] Failed to get upcoming tasks: {ex.Message}");
+                return new List<TodoItemDto>();
+            }
+        }
+
+        public async Task<List<UpcomingTaskDto>> GetUpcomingTasksWithDetailsAsync(int daysAhead = 3)
+        {
+            try
+            {
+                var today = DateTime.Now.Date;
+                var endDate = today.AddDays(daysAhead);
+
+                // Get all TodoLists with their items
+                var allTodoLists = await _unitOfWork.TodoListRepository.Get_All_Todo_list_Async();
+                
+                // Flatten the data and create UpcomingTaskDto
+                var upcomingTasks = allTodoLists
+                    .SelectMany(list => list.Todo_Items
+                        .Where(item => item.DueDate.HasValue &&
+                                       item.DueDate.Value.Date >= today &&
+                                       item.DueDate.Value.Date <= endDate &&
+                                       item.Status != Status.Completed &&
+                                       item.Status != Status.Cancelled)
+                        .Select(item =>
+                        {
+                            var dueDate = item.DueDate ?? DateTime.Now;
+                            var daysRemaining = (dueDate.Date - today).Days;
+                            
+                            return new UpcomingTaskDto
+                            {
+                                TaskTitle = item.Title,
+                                ListName = list.Title,
+                                DueDate = dueDate,
+                                DaysRemaining = daysRemaining,
+                                DueDateText = FormatDueDate(dueDate),
+                                UrgencyColor = GetUrgencyColor(daysRemaining)
+                            };
+                        }))
+                    .OrderBy(task => task.DueDate)
+                    .ToList();
+
+                return upcomingTasks;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ERROR] Failed to get upcoming tasks with details: {ex.Message}");
+                return new List<UpcomingTaskDto>();
+            }
+        }
+
+        private string FormatDueDate(DateTime dueDate)
+        {
+            var days = (dueDate.Date - DateTime.Now.Date).Days;
+
+            if (days == 0)
+                return "Due today";
+            else if (days == 1)
+                return "Due tomorrow";
+            else
+                return $"Due in {days} days";
+        }
+
+        private string GetUrgencyColor(int daysRemaining)
+        {
+            return daysRemaining switch
+            {
+                0 => "#F44336",        // Red - Today
+                1 => "#FF9800",        // Orange - Tomorrow
+                _ => "#2196F3"         // Blue - Later
+            };
+        }
     }
 }
 
