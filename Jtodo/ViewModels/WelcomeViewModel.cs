@@ -124,8 +124,8 @@ namespace Jtodo.ViewModels
                 LoadingMessage = "Loading New Data...";
 
                 var newDto = new TodoListDto(
-                    title: "Mock",
-                    description: "Mock"
+                    title: "New Title",
+                    description: "New Description"
                 );
                 var generatedId = await _todoListService.Create_Todo_List_Async(newDto);
                 

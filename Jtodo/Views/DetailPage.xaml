@@ -14,7 +14,7 @@
     <Page.Resources>
         <conv:BooleanToVisibilityConverter x:Key="BoolToVis"/>
         <conv:InverseBooleanToVisibilityConverter x:Key="InverseBoolToVis"/>
-        
+
         <!-- Validation Error Template -->
         <ControlTemplate x:Key="ValidationErrorTemplate">
             <DockPanel>
@@ -208,18 +208,22 @@
                                 Padding="10">
                             <Grid>
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="1.9*"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="1.5*"/>
+                                    <ColumnDefinition Width="1.8*"/>
+                                    <ColumnDefinition Width="0.5*"/>
+                                    <ColumnDefinition Width="0.5*"/>
+                                    <ColumnDefinition Width="0.5*"/>
+                                    <ColumnDefinition Width="1.2*"/>
+                                    <ColumnDefinition Width="60"/>
                                 </Grid.ColumnDefinitions>
 
                                 <TextBlock Grid.Column="0" Text="Name" FontWeight="Bold" Margin="10,5"/>
-                                <TextBlock Grid.Column="1" Text="Priority" FontWeight="Bold" Margin="10,5"/>
-                                <TextBlock Grid.Column="2" Text="Status" FontWeight="Bold" Margin="10,5"/>
-                                <TextBlock Grid.Column="3" Text="Type" FontWeight="Bold" Margin="10,5"/>
-                                <TextBlock Grid.Column="4" Text="Date" FontWeight="Bold" Margin="10,5"/>
+                                <TextBlock Grid.Column="1" Text="Description" FontWeight="Bold" Margin="10,5"/>
+                                <TextBlock Grid.Column="2" Text="Priority" FontWeight="Bold" Margin="10,5"/>
+                                <TextBlock Grid.Column="3" Text="Status" FontWeight="Bold" Margin="10,5"/>
+                                <TextBlock Grid.Column="4" Text="Type" FontWeight="Bold" Margin="10,5"/>
+                                <TextBlock Grid.Column="5" Text="Date" FontWeight="Bold" Margin="10,5"/>
+                                <TextBlock Grid.Column="6" Text="" FontWeight="Bold" Margin="10,5"/>
                             </Grid>
                         </Border>
 
@@ -230,27 +234,29 @@
                                         <Border BorderBrush="#E0E0E0" BorderThickness="0,0,0,1" Padding="10,10">
                                             <Grid>
                                                 <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="2*"/>
-                                                    <ColumnDefinition Width="*"/>
-                                                    <ColumnDefinition Width="*"/>
-                                                    <ColumnDefinition Width="*"/>
                                                     <ColumnDefinition Width="1.5*"/>
+                                                    <ColumnDefinition Width="1.8*"/>
+                                                    <ColumnDefinition Width="0.5*"/>
+                                                    <ColumnDefinition Width="0.5*"/>
+                                                    <ColumnDefinition Width="0.5*"/>
+                                                    <ColumnDefinition Width="1.2*"/>
+                                                    <ColumnDefinition Width="60"/>
                                                 </Grid.ColumnDefinitions>
-                                                
+
                                                 <!-- Name Column (Title) -->
                                                 <Grid Grid.Column="0" Margin="10,0">
                                                     <!-- Display Mode -->
                                                     <TextBlock Text="{Binding Title}" 
-                                                              VerticalAlignment="Center"
-                                                              Cursor="Hand"
-                                                              Visibility="{Binding IsEditing, Converter={StaticResource InverseBoolToVis}}">
+                                                               VerticalAlignment="Center"
+                                                               Cursor="Hand"
+                                                               Visibility="{Binding IsEditing, Converter={StaticResource InverseBoolToVis}}">
                                                         <TextBlock.InputBindings>
                                                             <MouseBinding Gesture="LeftDoubleClick" 
                                                                           Command="{Binding DataContext.StartEditItemCommand, RelativeSource={RelativeSource AncestorType=Page}}"
                                                                           CommandParameter="{Binding}"/>
                                                         </TextBlock.InputBindings>
                                                     </TextBlock>
-                                                    
+
                                                     <!-- Edit Mode -->
                                                     <TextBox Text="{Binding Title, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}"
                                                              VerticalContentAlignment="Center"
@@ -268,21 +274,60 @@
                                                         </TextBox.InputBindings>
                                                     </TextBox>
                                                 </Grid>
-                                                
-                                                <!-- Priority Column -->
+
+                                                <!-- Description Column -->
                                                 <Grid Grid.Column="1" Margin="10,0">
                                                     <!-- Display Mode -->
-                                                    <TextBlock Text="{Binding Priority}" 
-                                                              VerticalAlignment="Center"
-                                                              Cursor="Hand"
-                                                              Visibility="{Binding IsEditing, Converter={StaticResource InverseBoolToVis}}">
+                                                    <TextBlock Text="{Binding Description}" 
+                                                               VerticalAlignment="Center"
+                                                               TextTrimming="CharacterEllipsis"
+                                                               Foreground="#666"
+                                                               Cursor="Hand"
+                                                               Visibility="{Binding IsEditing, Converter={StaticResource InverseBoolToVis}}">
                                                         <TextBlock.InputBindings>
                                                             <MouseBinding Gesture="LeftDoubleClick" 
                                                                           Command="{Binding DataContext.StartEditItemCommand, RelativeSource={RelativeSource AncestorType=Page}}"
                                                                           CommandParameter="{Binding}"/>
                                                         </TextBlock.InputBindings>
                                                     </TextBlock>
-                                                    
+
+                                                    <!-- Edit Mode -->
+                                                    <TextBox Text="{Binding Description, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                             VerticalContentAlignment="Center"
+                                                             BorderThickness="1"
+                                                             BorderBrush="#2196F3"
+                                                             Visibility="{Binding IsEditing, Converter={StaticResource BoolToVis}}"
+                                                             LostFocus="EditControl_LostFocus"
+                                                             Tag="{Binding}">
+                                                        <TextBox.InputBindings>
+                                                            <KeyBinding Key="Enter" 
+                                                                        Command="{Binding DataContext.SaveEditItemCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                                                        CommandParameter="{Binding}"/>
+                                                        </TextBox.InputBindings>
+                                                    </TextBox>
+                                                </Grid>
+
+                                                <!-- Priority Column (Badge Style) -->
+                                                <Grid Grid.Column="2" Margin="5,0">
+                                                    <!-- Display Mode - Badge -->
+                                                    <Border Background="{Binding PriorityColor}"
+                                                            CornerRadius="10"
+                                                            Padding="8,4"
+                                                            Cursor="Hand"
+                                                            Visibility="{Binding IsEditing, Converter={StaticResource InverseBoolToVis}}">
+                                                        <Border.InputBindings>
+                                                            <MouseBinding Gesture="LeftDoubleClick" 
+                                                                          Command="{Binding DataContext.StartEditItemCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                                                          CommandParameter="{Binding}"/>
+                                                        </Border.InputBindings>
+                                                        <TextBlock Text="{Binding Priority}" 
+                                                                   Foreground="White"
+                                                                   FontSize="11"
+                                                                   FontWeight="SemiBold"
+                                                                   HorizontalAlignment="Center"
+                                                                   VerticalAlignment="Center"/>
+                                                    </Border>
+
                                                     <!-- Edit Mode -->
                                                     <ComboBox ItemsSource="{Binding DataContext.Priorities, RelativeSource={RelativeSource AncestorType=Page}}"
                                                               SelectedItem="{Binding Priority, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -297,21 +342,28 @@
                                                         </ComboBox.InputBindings>
                                                     </ComboBox>
                                                 </Grid>
-                                                
-                                                <!-- Status Column -->
-                                                <Grid Grid.Column="2" Margin="10,0">
-                                                    <!-- Display Mode -->
-                                                    <TextBlock Text="{Binding Status}" 
-                                                              VerticalAlignment="Center"
-                                                              Cursor="Hand"
-                                                              Visibility="{Binding IsEditing, Converter={StaticResource InverseBoolToVis}}">
-                                                        <TextBlock.InputBindings>
+
+                                                <!-- Status Column (Badge Style) -->
+                                                <Grid Grid.Column="3" Margin="5,0">
+                                                    <!-- Display Mode - Badge -->
+                                                    <Border Background="{Binding StatusColor}"
+                                                            CornerRadius="10"
+                                                            Padding="8,4"
+                                                            Cursor="Hand"
+                                                            Visibility="{Binding IsEditing, Converter={StaticResource InverseBoolToVis}}">
+                                                        <Border.InputBindings>
                                                             <MouseBinding Gesture="LeftDoubleClick" 
                                                                           Command="{Binding DataContext.StartEditItemCommand, RelativeSource={RelativeSource AncestorType=Page}}"
                                                                           CommandParameter="{Binding}"/>
-                                                        </TextBlock.InputBindings>
-                                                    </TextBlock>
-                                                    
+                                                        </Border.InputBindings>
+                                                        <TextBlock Text="{Binding Status}" 
+                                                                   Foreground="White"
+                                                                   FontSize="11"
+                                                                   FontWeight="SemiBold"
+                                                                   HorizontalAlignment="Center"
+                                                                   VerticalAlignment="Center"/>
+                                                    </Border>
+
                                                     <!-- Edit Mode -->
                                                     <ComboBox ItemsSource="{Binding DataContext.Statuses, RelativeSource={RelativeSource AncestorType=Page}}"
                                                               SelectedItem="{Binding Status, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -326,22 +378,29 @@
                                                         </ComboBox.InputBindings>
                                                     </ComboBox>
                                                 </Grid>
-                                                
-                                                <!-- Type Column -->
-                                                <Grid Grid.Column="3" Margin="10,0">
-                                                    <!-- Display Mode - Show TypeName instead of TypeId -->
-                                                    <TextBlock Text="{Binding TypeName}" 
-                                                              VerticalAlignment="Center"
-                                                              Cursor="Hand"
-                                                              Visibility="{Binding IsEditing, Converter={StaticResource InverseBoolToVis}}">
-                                                        <TextBlock.InputBindings>
+
+                                                <!-- Type Column (Badge Style) -->
+                                                <Grid Grid.Column="4" Margin="5,0">
+                                                    <!-- Display Mode - Badge -->
+                                                    <Border Background="{Binding TypeColor}"
+                                                            CornerRadius="10"
+                                                            Padding="8,4"
+                                                            Cursor="Hand"
+                                                            Visibility="{Binding IsEditing, Converter={StaticResource InverseBoolToVis}}">
+                                                        <Border.InputBindings>
                                                             <MouseBinding Gesture="LeftDoubleClick" 
                                                                           Command="{Binding DataContext.StartEditItemCommand, RelativeSource={RelativeSource AncestorType=Page}}"
                                                                           CommandParameter="{Binding}"/>
-                                                        </TextBlock.InputBindings>
-                                                    </TextBlock>
-                                                    
-                                                    <!-- Edit Mode - ComboBox with Type mapping -->
+                                                        </Border.InputBindings>
+                                                        <TextBlock Text="{Binding TypeName}" 
+                                                                   Foreground="White"
+                                                                   FontSize="11"
+                                                                   FontWeight="SemiBold"
+                                                                   HorizontalAlignment="Center"
+                                                                   VerticalAlignment="Center"/>
+                                                    </Border>
+
+                                                    <!-- Edit Mode -->
                                                     <ComboBox ItemsSource="{Binding DataContext.AvailableTypes, RelativeSource={RelativeSource AncestorType=Page}}"
                                                               SelectedValue="{Binding TypeId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                               SelectedValuePath="Id"
@@ -349,8 +408,7 @@
                                                               BorderThickness="1"
                                                               BorderBrush="#2196F3"
                                                               Visibility="{Binding IsEditing, Converter={StaticResource BoolToVis}}"
-                                                              Tag="{Binding}"
-                                                              >
+                                                              Tag="{Binding}">
                                                         <ComboBox.InputBindings>
                                                             <KeyBinding Key="Enter" 
                                                                         Command="{Binding DataContext.SaveEditItemCommand, RelativeSource={RelativeSource AncestorType=Page}}"
@@ -358,48 +416,80 @@
                                                         </ComboBox.InputBindings>
                                                     </ComboBox>
                                                 </Grid>
-                                                
+
                                                 <!-- Date Column -->
-                                                <Grid Grid.Column="4" Margin="10,0">
+                                                <Grid Grid.Column="5" Margin="5,0">
                                                     <!-- Display Mode -->
                                                     <TextBlock VerticalAlignment="Center"
-                                                              Cursor="Hand"
-                                                              Visibility="{Binding IsEditing, Converter={StaticResource InverseBoolToVis}}">
+                                                               FontSize="11"
+                                                               Cursor="Hand"
+                                                               Visibility="{Binding IsEditing, Converter={StaticResource InverseBoolToVis}}">
                                                         <TextBlock.InputBindings>
                                                             <MouseBinding Gesture="LeftDoubleClick" 
                                                                           Command="{Binding DataContext.StartEditItemCommand, RelativeSource={RelativeSource AncestorType=Page}}"
                                                                           CommandParameter="{Binding}"/>
                                                         </TextBlock.InputBindings>
                                                         <TextBlock.Text>
-                                                            <MultiBinding StringFormat="{}{0:yyyy-MM-dd} → {1:yyyy-MM-dd}">
+                                                            <MultiBinding StringFormat="{}{0:MM/dd} → {1:MM/dd}">
                                                                 <Binding Path="StartDate"/>
                                                                 <Binding Path="DueDate"/>
                                                             </MultiBinding>
                                                         </TextBlock.Text>
                                                     </TextBlock>
-                                                    
+
                                                     <!-- Edit Mode -->
                                                     <StackPanel Orientation="Horizontal" 
                                                                 Visibility="{Binding IsEditing, Converter={StaticResource BoolToVis}}">
                                                         <DatePicker SelectedDate="{Binding StartDate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}"
                                                                     BorderThickness="1"
                                                                     BorderBrush="#2196F3"
-                                                                    Width="100"
-                                                                    Margin="0,0,5,0"
+                                                                    Width="80"
+                                                                    Margin="0,0,3,0"
                                                                     Validation.ErrorTemplate="{StaticResource ValidationErrorTemplate}"
                                                                     Tag="{Binding}"
                                                                     PreviewKeyDown="DatePicker_PreviewKeyDown">
                                                         </DatePicker>
-                                                        <TextBlock Text="→" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                                                        <TextBlock Text="→" VerticalAlignment="Center" Margin="0,0,3,0" FontSize="10"/>
                                                         <DatePicker SelectedDate="{Binding DueDate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}"
                                                                     BorderThickness="1"
                                                                     BorderBrush="#2196F3"
-                                                                    Width="100"
+                                                                    Width="80"
                                                                     Validation.ErrorTemplate="{StaticResource ValidationErrorTemplate}"
                                                                     Tag="{Binding}"
                                                                     PreviewKeyDown="DatePicker_PreviewKeyDown">
                                                         </DatePicker>
                                                     </StackPanel>
+                                                </Grid>
+
+                                                <!-- Delete Button Column (Visible only in Edit Mode) -->
+                                                <Grid Grid.Column="6" Margin="5,0">
+                                                    <Button Command="{Binding DataContext.DeleteTaskCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                                            CommandParameter="{Binding}"
+                                                            Background="#F44336"
+                                                            BorderThickness="0"
+                                                            Width="40"
+                                                            Height="20"
+                                                            Cursor="Hand"
+                                                            ToolTip="Delete Task"
+                                                            Visibility="{Binding DataContext.IsEditMode, RelativeSource={RelativeSource AncestorType=Page}, Converter={StaticResource BoolToVis}}">
+                                                        <Button.Template>
+                                                            <ControlTemplate TargetType="Button">
+                                                                <Border x:Name="Border"
+                                                                        Background="{TemplateBinding Background}"
+                                                                        CornerRadius="5">
+                                                                    <TextBlock Text="🗑️" 
+                                                                               FontSize="16"
+                                                                               HorizontalAlignment="Center"
+                                                                               VerticalAlignment="Center"/>
+                                                                </Border>
+                                                                <ControlTemplate.Triggers>
+                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                        <Setter TargetName="Border" Property="Background" Value="#D32F2F"/>
+                                                                    </Trigger>
+                                                                </ControlTemplate.Triggers>
+                                                            </ControlTemplate>
+                                                        </Button.Template>
+                                                    </Button>
                                                 </Grid>
                                             </Grid>
                                         </Border>
@@ -436,11 +526,61 @@
                 Cursor="Hand"
                 HorizontalAlignment="Right"
                 VerticalAlignment="Top"
-                Margin="0,10,36,0"
-                Opacity="0.9" Height="41" Width="75" Grid.Row="1">
+                Margin="0,10,31,0"
+                Opacity="0.9" Height="41" Width="75">
             <Button.Effect>
                 <DropShadowEffect Color="Black" Opacity="0.2" BlurRadius="8" ShadowDepth="2"/>
             </Button.Effect>
+            <Button.Template>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Border"
+                            Background="{TemplateBinding Background}"
+                            CornerRadius="20"
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Border" Property="Background" Value="#F0F0F0"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Border" Property="Background" Value="#E0E0E0"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Button.Template>
+        </Button>
+
+        <!-- Edit Tasks Button -->
+        <Button
+                Command="{Binding ToggleEditModeCommand}"
+                Background="White"
+                BorderThickness="0"
+                FontSize="16"
+                FontWeight="SemiBold"
+                Padding="15,10"
+                Cursor="Hand"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Top"
+                Margin="0,10,121,0"
+                Opacity="0.9" Height="41" Width="80">
+            <Button.Effect>
+                <DropShadowEffect Color="Black" Opacity="0.2" BlurRadius="8" ShadowDepth="2"/>
+            </Button.Effect>
+            <Button.Content>
+                <TextBlock>
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Text" Value="Delete"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsEditMode}" Value="True">
+                                    <Setter Property="Text" Value="Done"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+            </Button.Content>
             <Button.Template>
                 <ControlTemplate TargetType="Button">
                     <Border x:Name="Border"

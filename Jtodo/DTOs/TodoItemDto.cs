@@ -17,6 +17,7 @@ namespace Jtodo.DTOs
         private ulong _typeId;
         private bool _isEditing;
         private string _typeName = string.Empty;
+        private string _typeColor = "#9E9E9E"; // Default gray color
 
         public ulong Id
         {
@@ -51,13 +52,23 @@ namespace Jtodo.DTOs
         public Priority Priority
         {
             get => _priority;
-            set { _priority = value; OnPropertyChanged(nameof(Priority)); }
+            set 
+            { 
+                _priority = value; 
+                OnPropertyChanged(nameof(Priority));
+                OnPropertyChanged(nameof(PriorityColor));
+            }
         }
 
         public Status Status
         {
             get => _status;
-            set { _status = value; OnPropertyChanged(nameof(Status)); }
+            set 
+            { 
+                _status = value; 
+                OnPropertyChanged(nameof(Status));
+                OnPropertyChanged(nameof(StatusColor));
+            }
         }
 
         public ulong TypeId
@@ -77,6 +88,45 @@ namespace Jtodo.DTOs
         {
             get => _typeName;
             set { _typeName = value; OnPropertyChanged(nameof(TypeName)); }
+        }
+
+        // Type color - will be populated by ViewModel from database
+        public string TypeColor
+        {
+            get => _typeColor;
+            set { _typeColor = value; OnPropertyChanged(nameof(TypeColor)); }
+        }
+
+        // Color properties for UI badges
+        public string StatusColor
+        {
+            get
+            {
+                return Status switch
+                {
+                    Status.Pending => "#9E9E9E",      // Gray
+                    Status.Progress => "#2196F3",   // Blue
+                    Status.Completed => "#4CAF50",    // Green
+                    Status.Expired => "#FF9800",     // Orange
+                    Status.Cancelled => "#F44336",    // Red
+                    _ => "#9E9E9E"
+                };
+            }
+        }
+
+        public string PriorityColor
+        {
+            get
+            {
+                return Priority switch
+                {
+                    Priority.Low => "#4CAF50",        // Green
+                    Priority.Medium => "#FF9800",     // Orange
+                    Priority.High => "#F44336",       // Red
+                    Priority.Critical => "#9C27B0",   // Purple
+                    _ => "#9E9E9E"
+                };
+            }
         }
 
         public TodoItemDto()

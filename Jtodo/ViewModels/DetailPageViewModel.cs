@@ -31,6 +31,7 @@ namespace Jtodo.ViewModels
         private bool _isEditingDescription;
         private string _editingTitle;
         private string _editingDescription;
+        private bool _isEditMode;
 
         public ObservableCollection<TodoItemDto> TodoItems
         {
@@ -105,6 +106,12 @@ namespace Jtodo.ViewModels
             set { _editingDescription = value; OnPropertyChanged(); }
         }
 
+        public bool IsEditMode
+        {
+            get => _isEditMode;
+            set { _isEditMode = value; OnPropertyChanged(); }
+        }
+
         // Commands
         public ICommand StartEditTitleCommand { get; }
         public ICommand StartEditDescriptionCommand { get; }
@@ -115,6 +122,8 @@ namespace Jtodo.ViewModels
         public ICommand StartEditItemCommand { get; }
         public ICommand SaveEditItemCommand { get; }
         public ICommand AddTaskCommand { get; }
+        public ICommand ToggleEditModeCommand { get; }
+        public ICommand DeleteTaskCommand { get; }
 
         public DetailPageViewModel(INavigationService navigationService, TodoListService todoListService, 
             TodoItemService todoItemService, TypeService typeService)
@@ -141,6 +150,8 @@ namespace Jtodo.ViewModels
             StartEditItemCommand = new RelayCommand(p => StartEditItem(p as TodoItemDto));
             SaveEditItemCommand = new RelayCommand(async p => await SaveEditItemAsync(p as TodoItemDto));
             AddTaskCommand = new RelayCommand(async p => await AddTaskAsync());
+            ToggleEditModeCommand = new RelayCommand(p => ToggleEditMode());
+            DeleteTaskCommand = new RelayCommand(async p => await DeleteTaskAsync(p as TodoItemDto));
         }
 
         public async Task LoadTodoListByIdAsync(ulong todoListId)
@@ -171,11 +182,18 @@ namespace Jtodo.ViewModels
                     {
                         foreach (var item in todoListDto.TodoItems)
                         {
-                            // Map TypeName for display
+                            // Map TypeName and TypeColor for display
                             var type = AvailableTypes.FirstOrDefault(t => t.Id == item.TypeId);
                             if (type != null)
                             {
                                 item.TypeName = type.Text;
+                                // Convert int color to hex string (default gray if 0 or invalid)
+                                item.TypeColor = type.Color != 0 ? $"#{type.Color:X6}" : "#9E9E9E";
+                            }
+                            else
+                            {
+                                item.TypeName = "Unknown";
+                                item.TypeColor = "#9E9E9E"; // Default gray for unknown types
                             }
                             
                             // Initialize as not editing
@@ -284,11 +302,18 @@ namespace Jtodo.ViewModels
         {
             if (e.PropertyName == nameof(TodoItemDto.TypeId) && sender is TodoItemDto item)
             {
-                // Update TypeName immediately when TypeId changes
+                // Update TypeName and TypeColor immediately when TypeId changes
                 var type = AvailableTypes.FirstOrDefault(t => t.Id == item.TypeId);
                 if (type != null)
                 {
                     item.TypeName = type.Text;
+                    // Convert int color to hex string (default gray if 0 or invalid)
+                    item.TypeColor = type.Color != 0 ? $"#{type.Color:X6}" : "#9E9E9E";
+                }
+                else
+                {
+                    item.TypeName = "Unknown";
+                    item.TypeColor = "#9E9E9E"; // Default gray
                 }
             }
         }
@@ -312,11 +337,18 @@ namespace Jtodo.ViewModels
 
             try
             {
-                // Update TypeName for display
+                // Update TypeName and TypeColor for display
                 var type = AvailableTypes.FirstOrDefault(t => t.Id == item.TypeId);
                 if (type != null)
                 {
                     item.TypeName = type.Text;
+                    // Convert int color to hex string (default gray if 0 or invalid)
+                    item.TypeColor = type.Color != 0 ? $"#{type.Color:X6}" : "#9E9E9E";
+                }
+                else
+                {
+                    item.TypeName = "Unknown";
+                    item.TypeColor = "#9E9E9E"; // Default gray
                 }
 
                 // Save to database
@@ -359,11 +391,18 @@ namespace Jtodo.ViewModels
                 // Create new task in database
                 var newTaskDto = await _todoListService.CreateTaskInListAsync(CurrentTodoList.Id);
 
-                // Map TypeName for display
+                // Map TypeName and TypeColor for display
                 var type = AvailableTypes.FirstOrDefault(t => t.Id == newTaskDto.TypeId);
                 if (type != null)
                 {
                     newTaskDto.TypeName = type.Text;
+                    // Convert int color to hex string (default gray if 0 or invalid)
+                    newTaskDto.TypeColor = type.Color != 0 ? $"#{type.Color:X6}" : "#9E9E9E";
+                }
+                else
+                {
+                    newTaskDto.TypeName = "Unknown";
+                    newTaskDto.TypeColor = "#9E9E9E"; // Default gray
                 }
 
                 // Subscribe to property changes
@@ -388,6 +427,61 @@ namespace Jtodo.ViewModels
             {
                 System.Windows.MessageBox.Show($"Error adding task: {ex.Message}", "Error");
                 Console.WriteLine($"[ERROR] Failed to add task: {ex.Message}");
+            }
+            finally
+            {
+                IsLoading = false;
+            }
+        }
+
+        // Toggle Edit Mode
+        private void ToggleEditMode()
+        {
+            IsEditMode = !IsEditMode;
+        }
+
+        // Delete Task
+        private async Task DeleteTaskAsync(TodoItemDto? item)
+        {
+            if (item == null) return;
+
+            try
+            {
+                // Confirm deletion
+                var result = System.Windows.MessageBox.Show(
+                    $"Are you sure you want to delete '{item.Title}'?",
+                    "Confirm Delete",
+                    System.Windows.MessageBoxButton.YesNo,
+                    System.Windows.MessageBoxImage.Warning);
+
+                if (result != System.Windows.MessageBoxResult.Yes)
+                    return;
+
+                IsLoading = true;
+                LoadingMessage = "Deleting task...";
+
+                // Delete from database
+                await _todoItemService.DeleteTodoItemAsync(item.Id);
+
+                // Remove from UI collection
+                TodoItems.Remove(item);
+
+                // Also remove from CurrentTodoList to keep it in sync
+                if (CurrentTodoList?.TodoItems != null)
+                {
+                    var itemToRemove = CurrentTodoList.TodoItems.FirstOrDefault(i => i.Id == item.Id);
+                    if (itemToRemove != null)
+                    {
+                        CurrentTodoList.TodoItems.Remove(itemToRemove);
+                    }
+                }
+
+                Console.WriteLine($"[INFO] Successfully deleted task ID: {item.Id}");
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show($"Error deleting task: {ex.Message}", "Error");
+                Console.WriteLine($"[ERROR] Failed to delete task: {ex.Message}");
             }
             finally
             {
