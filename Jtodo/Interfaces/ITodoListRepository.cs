@@ -15,5 +15,6 @@ namespace Jtodo.Interfaces
         Task Update_Todo_List_Async(TodoList todoList);
         Task Delete_Todo_List_Async(ulong id);
         Task<bool> Exists_Async(ulong id);
+        Task Delete_Todo_List_With_Items_Async(ulong id);
     }
 }

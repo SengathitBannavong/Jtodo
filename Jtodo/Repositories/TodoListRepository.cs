@@ -127,6 +127,51 @@ namespace Jtodo.Repositories
                 throw;
             }
         }
+        public async Task Delete_Todo_List_With_Items_Async(ulong id)
+        {
+            try
+            {
+                Console.WriteLine($"[INFO] Deleting TodoList with items async ID: {id}");
+
+                // 1. Get TodoItem IDs have relation with TodoList
+                var todoItemIds = await _db_context.TodoListItems
+                    .Where(tli => tli.TodoListId == id)
+                    .Select(tli => tli.TodoItemId)
+                    .ToListAsync();
+
+                if (todoItemIds.Any())
+                {
+                    // 2. junction records
+                    var junctionRecords = await _db_context.TodoListItems
+                        .Where(tli => tli.TodoListId == id)
+                        .ToListAsync();
+                    
+                    _db_context.TodoListItems.RemoveRange(junctionRecords);
+                    Console.WriteLine($"[INFO] Removed {junctionRecords.Count} junction records");
+
+                    // 3. delete TodoItems
+                    var todoItems = await _db_context.TodoItems
+                        .Where(ti => todoItemIds.Contains(ti.Id))
+                        .ToListAsync();
+                    
+                    _db_context.TodoItems.RemoveRange(todoItems);
+                    Console.WriteLine($"[INFO] Removed {todoItems.Count} TodoItems");
+                }
+
+                // 4. delete TodoList
+                var todoList = await _db_context.TodoLists.FindAsync(id);
+                if (todoList != null)
+                {
+                    _db_context.TodoLists.Remove(todoList);
+                    Console.WriteLine($"[INFO] Removed TodoList ID: {id}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ERROR] Error deleting TodoList with items: {ex.Message}");
+                throw;
+            }
+        }
 
         public async Task<bool> Exists_Async(ulong id)
         {

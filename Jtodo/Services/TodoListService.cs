@@ -49,6 +49,12 @@ namespace Jtodo.Services
             await _unitOfWork.TodoListRepository.Delete_Todo_List_Async(id);
             await _unitOfWork.SaveChangesAsync();
         }
+
+        public async Task Delete_TodoList_Complete_Async(ulong id)
+        {
+            await _unitOfWork.TodoListRepository.Delete_Todo_List_With_Items_Async(id);
+            await _unitOfWork.SaveChangesAsync();
+        }
     }
 }
 
